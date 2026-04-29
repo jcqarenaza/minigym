@@ -15,12 +15,20 @@
 
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --navy:#1a263a;--green:#25a269;--gd:#1a7a4f;--gl:#e8f5ee;
-  --bg:#f0f2f5;--white:#fff;--s2:#f7f8fa;--bor:#e5e7eb;--b2:#d1d5db;
-  --tx:#111827;--t2:#6b7280;--mu:#9ca3af;
-  --red:#ef4444;--rl:#fef2f2;--am:#f59e0b;--al:#fffbeb;
-  --bl:#3b82f6;--bll:#eff6ff;--ok:#10b981;--ol:#ecfdf5;
-  --sh:0 1px 3px rgba(0,0,0,.1);--sh2:0 4px 16px rgba(0,0,0,.12);
+  /* Azules principales */
+  --navy:#2c4a7c;--navyd:#1e3460;--navyl:#e8eef7;
+  /* Verde → ahora más teal/azulado */
+  --green:#3b82c4;--gd:#2563a8;--gl:#dbeafe;
+  /* Amarillo acento */
+  --yellow:#f5c842;--yl:#fffbe6;
+  /* Fondo pastel */
+  --bg:#f0f4fb;--white:#fff;--s2:#f5f8ff;--bor:#dde4f0;--b2:#c5d0e8;
+  /* Texto */
+  --tx:#1e2d4a;--t2:#5a6a85;--mu:#9aa5bc;
+  /* Estados */
+  --red:#e05252;--rl:#fdf0f0;--am:#e8a020;--al:#fff8e6;
+  --bl:#3b82f6;--bll:#eff6ff;--ok:#22a06b;--ol:#e6f9f1;
+  --sh:0 1px 4px rgba(44,74,124,.1);--sh2:0 4px 18px rgba(44,74,124,.13);
 }
 html,body{height:100%;font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:var(--bg);color:var(--tx)}
 
@@ -863,12 +871,16 @@ function api(action,params){
     else if(params) Object.assign(body, params);
     return fetch(GAS, {
       method: 'POST',
+      mode: 'cors',
       body: JSON.stringify(body),
       headers: {'Content-Type': 'text/plain'} // avoid preflight
     })
-    .then(function(r){ return r.json(); })
+    .then(function(r){
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      return r.json();
+    })
     .catch(function(err){
-      // Fallback a JSONP si fetch falla (file://)
+      console.warn('fetch failed ('+action+'):', err.message, '— trying JSONP');
       return _apiJsonp(action, params);
     });
   } else {
@@ -1110,6 +1122,39 @@ function _runSync(){
     .then(function(){_dirty={};_online=true;_syncing=false;_updateSyncStatus();})
     .catch(function(){_syncing=false;_online=false;_updateSyncStatus();});
 }
+function _pullSheetSilent(){
+  // Pull que MERGEA: actualiza datos del sheet pero no elimina cambios locales pendientes
+  Promise.all([
+    api('getAlumnos').then(function(r){
+      var d=r.data||r||[];
+      if(!d.length) return;
+      // Merge: for each sheet record, update local if id matches; add if new
+      d.forEach(function(sa){
+        var li=( window._alumnos||[]).findIndex(function(a){return a.id===sa.id;});
+        if(li>=0) window._alumnos[li]=sa;
+        else window._alumnos.push(sa);
+      });
+    }),
+    api('getRutinas').then(function(r){
+      var d=r.data||r||[];
+      if(!d.length) return;
+      d.forEach(function(sr){
+        var li=(window._rutinas||[]).findIndex(function(x){return x.id===sr.id;});
+        if(li>=0) window._rutinas[li]=sr;
+        else window._rutinas.push(sr);
+      });
+    }),
+    api('getConfig').then(function(r){
+      var d=r.data||r||{};
+      if(d&&typeof d==='object'&&d.gym_nombre){
+        Object.keys(d).forEach(function(k){LOCAL_CONFIG[k]=d[k];});
+        _applyGymIdentity();
+      }
+    }).catch(function(){}),
+  ]).then(function(){
+    _online=true;_lsSave();_updateSyncStatus();renderAll();
+  }).catch(function(){_online=false;_updateSyncStatus();});
+}
 function _pullSheet(){
   return Promise.all([
     api('getAlumnos').then(function(r){var d=r.data||r||[];if(d.length)window._alumnos=d;}),
@@ -1180,8 +1225,14 @@ function loadAll(){
   _applyGymIdentity();
   renderAll();
   _updateSyncStatus();
-  // 4. Sincronizar con Sheet en background
-  _pullSheet();
+  // 4. Sincronizar con Sheet en background (solo si no hay caché local)
+  // Si hay caché, los datos ya están frescos — pull en background sin reemplazar
+  if(!window._alumnos.length && !window._rutinas.length){
+    _pullSheet();
+  } else {
+    // Hay caché: pull silencioso que solo agrega/actualiza, no borra localmente
+    _pullSheetSilent();
+  }
 }
 function renderAll(){renderDash();renderAlumnos();renderRutinas();renderPagos();fillPrint();updateBadge();}
 function updateBadge(){
@@ -1347,10 +1398,24 @@ function saveAlumno(){
   closeModal('mo-al');toast('Alumno guardado ✓');_lsSave();renderAll();markDirty('alumno',data.id);
 }
 function delAlumno(id){
-  if(!confirm('¿Eliminar este alumno?'))return;
-  window._alumnos=(window._alumnos||[]).filter(function(x){return x.id!==id;});
-  toast('Alumno eliminado');_lsSave();renderAll();
-  api('deleteAlumno',{id:id}).then(function(){_online=true;_updateSyncStatus();}).catch(function(){_online=false;_updateSyncStatus();});
+  confirmModal('¿Eliminar este alumno? Esta acción no se puede deshacer.', function(){
+    window._alumnos=(window._alumnos||[]).filter(function(x){return x.id!==id;});
+    toast('Alumno eliminado');_lsSave();renderAll();
+    var backup=JSON.parse(JSON.stringify(window._alumnos));
+    api('deleteAlumno',{id:id})
+      .then(function(r){
+        _online=true;_updateSyncStatus();
+        if(r&&r.ok===false){
+          window._alumnos=backup;_lsSave();renderAll();
+          toast('⚠️ Error al eliminar: '+(r.error||''));
+        }
+      })
+      .catch(function(){
+        window._alumnos=backup;_lsSave();renderAll();
+        _online=false;_updateSyncStatus();
+        toast('⚠️ Sin conexión — alumno restaurado');
+      });
+  }, 'Eliminar alumno');
 }
 function calcIMC(){
   var p=+document.getElementById('f-peso').value,h=+document.getElementById('f-alt').value;
@@ -1493,6 +1558,22 @@ function _acBindAll(){
       inp.dataset.acBound='1';
     }
   });
+}
+
+
+// ── CONFIRM MODAL (reemplaza window.confirm) ──────────────────
+function confirmModal(msg, onOk, title){
+  document.getElementById('confirm-msg').textContent = msg;
+  document.getElementById('confirm-title').textContent = title || 'Confirmar';
+  var okBtn = document.getElementById('confirm-ok');
+  // Clone to remove old listeners
+  var newBtn = okBtn.cloneNode(true);
+  okBtn.parentNode.replaceChild(newBtn, okBtn);
+  newBtn.addEventListener('click', function(){
+    closeModal('mo-confirm');
+    onOk();
+  });
+  openModal('mo-confirm');
 }
 
 // ── RUTINAS ───────────────────────────────────────────────────
@@ -1809,7 +1890,7 @@ function pvPlanilla(){
   }).join('');
   var h='<div class="doc">'+dh('PLANILLA DE COBROS','Período: '+m)
     +'<div class="dbody" style="padding:9px 16px">'
-    +'<div style="display:flex;gap:9px;margin-bottom:11px">'+[['Alumnos',alumnos.length,'#1a263a'],['Al día',alumnos.filter(function(a){return estadoAl(a).dias>=0;}).length,'#047857'],['Vencidos',alumnos.filter(function(a){return estadoAl(a).dias<0;}).length,'#b91c1c']].map(function(x){return'<div style="background:'+x[2]+';color:#fff;border-radius:6px;padding:6px 12px;text-align:center"><div style="font-size:16px;font-weight:800">'+x[1]+'</div><div style="font-size:7.5px;opacity:.7;text-transform:uppercase">'+x[0]+'</div></div>';}).join('')+'</div>'
+    +'<div style="display:flex;gap:9px;margin-bottom:11px">'+[['Alumnos',alumnos.length,'var(--navy)'],['Al día',alumnos.filter(function(a){return estadoAl(a).dias>=0;}).length,'#047857'],['Vencidos',alumnos.filter(function(a){return estadoAl(a).dias<0;}).length,'#b91c1c']].map(function(x){return'<div style="background:'+x[2]+';color:#fff;border-radius:6px;padding:6px 12px;text-align:center"><div style="font-size:16px;font-weight:800">'+x[1]+'</div><div style="font-size:7.5px;opacity:.7;text-transform:uppercase">'+x[0]+'</div></div>';}).join('')+'</div>'
     +'<table class="ctbl"><thead><tr><th>#</th><th>Alumno</th><th>DNI</th><th>Tel</th><th>Cuota</th><th>Últ. pago</th><th>Vence</th><th>Estado</th></tr></thead><tbody>'+rows+'</tbody></table>'
     +'</div><div class="tbar2">'+[['Total',fmtM(total)],['Cobrado',fmtM(cobrado)],['Pendiente',fmtM(total-cobrado)]].map(function(x){return'<div><div class="tv">'+x[1]+'</div><div class="tl">'+x[0]+'</div></div>';}).join('')+'</div>'
     +'<div class="dfoot">'+gymName()+' · '+gymSub()+' · '+fmt(new Date().toISOString().split('T')[0])+'</div></div>';
@@ -1910,9 +1991,10 @@ function savePago(){
   closeModal('mo-pg');toast('Pago registrado ✓');_lsSave();renderAll();
 }
 function delRutina(id){
-  if(!confirm('¿Eliminar esta rutina?'))return;
-  window._rutinas=(window._rutinas||[]).filter(function(x){return x.id!==id;});
-  toast('Rutina eliminada');_lsSave();renderRutinas();markDirty('rutina',id);
+  confirmModal('¿Eliminar esta rutina? Esta acción no se puede deshacer.', function(){
+    window._rutinas=(window._rutinas||[]).filter(function(x){return x.id!==id;});
+    toast('Rutina eliminada');_lsSave();renderRutinas();markDirty('rutina',id);
+  }, 'Eliminar rutina');
 }
 
 // ── PRINT HELPERS ─────────────────────────────────────────────
@@ -2061,5 +2143,17 @@ function exportCuotasCSV(){
 }
 
 </script>
+
+  <!-- Modal confirmación -->
+  <div class="mo" id="mo-confirm" style="z-index:9999">
+    <div style="background:#fff;border-radius:12px;width:min(400px,92vw);box-shadow:0 8px 32px rgba(0,0,0,.22);overflow:hidden">
+      <div style="background:var(--navy);color:#fff;padding:16px 20px;font-size:15px;font-weight:700" id="confirm-title">Confirmar</div>
+      <div style="padding:22px 20px 16px;font-size:14px;color:var(--tx);line-height:1.6" id="confirm-msg"></div>
+      <div style="display:flex;gap:10px;padding:12px 20px 20px;justify-content:flex-end;border-top:1px solid var(--bor)">
+        <button class="btn" style="min-width:90px;padding:8px 18px" onclick="closeModal('mo-confirm')" id="confirm-cancel">Cancelar</button>
+        <button class="btn" id="confirm-ok" style="min-width:100px;padding:8px 18px;background:var(--red);color:#fff;border-color:var(--red);font-weight:700">Eliminar</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
