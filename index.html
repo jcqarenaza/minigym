@@ -852,14 +852,39 @@ var LOCAL_ALUMNOS = [];
 // ── JSONP API (file:// compatible) ────────────────────────────
 var _cbN=0;
 function api(action,params){
+  // GET requests (lecturas) — JSONP para compatibilidad file://
+  // POST requests (escrituras) — fetch JSON para compatibilidad https://
+  var isWrite = ['saveAlumno','saveRutina','savePago','saveConfig',
+                 'deleteAlumno','deleteRutina'].indexOf(action) >= 0;
+  if(isWrite){
+    // POST via fetch
+    var body = {action: action};
+    if(params && params.payload) body.payload = JSON.parse(params.payload);
+    else if(params) Object.assign(body, params);
+    return fetch(GAS, {
+      method: 'POST',
+      body: JSON.stringify(body),
+      headers: {'Content-Type': 'text/plain'} // avoid preflight
+    })
+    .then(function(r){ return r.json(); })
+    .catch(function(err){
+      // Fallback a JSONP si fetch falla (file://)
+      return _apiJsonp(action, params);
+    });
+  } else {
+    return _apiJsonp(action, params);
+  }
+}
+
+function _apiJsonp(action,params){
   return new Promise(function(resolve,reject){
     var cb='_cb'+(++_cbN);
     var url=GAS+'?action='+action+'&callback='+cb;
     if(params)Object.keys(params).forEach(function(k){url+='&'+k+'='+encodeURIComponent(typeof params[k]==='object'?JSON.stringify(params[k]):params[k]);});
-    var done=false,t=setTimeout(function(){if(done)return;done=true;delete window[cb];reject(new Error('timeout'));},12000);
+    var done=false,t=setTimeout(function(){if(done)return;done=true;delete window[cb];reject(new Error('timeout'));},15000);
     window[cb]=function(data){if(done)return;done=true;clearTimeout(t);delete window[cb];var s=document.querySelector('script[data-cb="'+cb+'"]');if(s)s.parentNode.removeChild(s);resolve(data);};
     var s=document.createElement('script');s.dataset.cb=cb;s.src=url;
-    s.onerror=function(){if(done)return;done=true;clearTimeout(t);delete window[cb];reject(new Error('error'));};
+    s.onerror=function(){if(done)return;done=true;clearTimeout(t);delete window[cb];reject(new Error('network error'));};
     document.head.appendChild(s);
   });
 }
