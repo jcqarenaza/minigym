@@ -585,20 +585,14 @@ textarea{resize:vertical;min-height:60px}
           <button class="btn bp" id="btn-save-gym" style="margin-top:8px">Guardar identidad</button>
         </div>
         <div class="card cp" style="border-left:4px solid var(--am)">
-          <div class="ct">💰 Cuota mensual general</div>
-          <div class="fr c2">
-            <div class="fg"><label>Valor ($)</label><input type="number" id="cfg-cuota" placeholder="8000"></div>
-            <div class="fg"><label>Vigente desde</label><input type="date" id="cfg-desde"></div>
-          </div>
-          <div class="fg"><label>Mensaje para alumnos al loguearse</label>
-            <textarea id="cfg-msg" rows="2" placeholder="A partir del 1 de abril la cuota será $9.000."></textarea></div>
-          <button class="btn bp" id="btn-save-config" style="margin-top:4px">Guardar cuota</button>
-        </div>
-        <div class="card cp" style="border-left:4px solid var(--bl)">
-          <div class="ct">📅 Cuota por frecuencia semanal</div>
-          <p style="font-size:12px;color:var(--mu);margin-bottom:12px">Precio según los días por semana que asiste el alumno. Si está vacío aplica la cuota general.</p>
+          <div class="ct">💰 Cuotas por frecuencia</div>
+          <p style="font-size:12px;color:var(--mu);margin-bottom:12px">Definí el precio según los días que asiste cada alumno por semana.</p>
           <div id="cfg-dias-cuotas"></div>
-          <button class="btn bp" id="btn-save-dias-cuotas" style="margin-top:10px">Guardar cuotas por frecuencia</button>
+          <div class="fg" style="margin-top:12px"><label>Mensaje para alumnos al loguearse</label>
+            <textarea id="cfg-msg" rows="2" placeholder="Recordá que el pago se realiza los primeros 5 días del mes."></textarea></div>
+          <input type="hidden" id="cfg-cuota" value="0">
+          <input type="hidden" id="cfg-desde" value="">
+          <button class="btn bp" id="btn-save-config" id="btn-save-dias-cuotas" style="margin-top:10px">Guardar cuotas</button>
         </div>
         <div class="card cp">
           <div class="ct">🔢 Números de alumno</div>
@@ -646,9 +640,7 @@ textarea{resize:vertical;min-height:60px}
             <option value="2">2 veces por semana</option>
             <option value="3">3 veces por semana</option>
             <option value="4">4 veces por semana</option>
-            <option value="5">5 veces por semana</option>
-            <option value="6">6 veces por semana</option>
-            <option value="7">Todos los días</option>
+            <option value="5">Pase libre (Lun a Vie)</option>
           </select>
         </div>
         <div class="fg"><label>Objetivo</label><select id="a-obj"><option value="">—</option><option>Ganar masa muscular</option><option>Perder peso</option><option>Mantenimiento</option><option>Mejorar condicion fisica</option><option>Rendimiento deportivo</option><option>Rehabilitacion</option></select></div>
@@ -728,7 +720,7 @@ textarea{resize:vertical;min-height:60px}
     </div>
     <div class="fr" style="gap:10px">
       <div class="fg"><label>Nivel</label><select id="r-niv"><option>Principiante</option><option>Intermedio</option><option>Avanzado</option></select></div>
-      <div class="fg"><label>Días por semana</label><select id="r-ndias" onchange="rdrBuildDays()"><option value="2">2 días</option><option value="3" selected>3 días</option><option value="4">4 días</option><option value="5">5 días</option><option value="6">6 días</option></select></div>
+      <div class="fg"><label>Días por semana</label><select id="r-ndias" onchange="rdrBuildDays()"><option value="2">2 días</option><option value="3" selected>3 días</option><option value="4">4 días</option><option value="5">5 días</option></select></div>
       <div class="fg"><label>Semanas</label><input type="number" id="r-sem" value="8" min="1" max="52" style="width:70px"></div>
       <div class="fg"><label>Duración sesión</label><input id="r-dur" placeholder="60 min" style="width:90px"></div>
     </div>
@@ -850,7 +842,7 @@ var editId = null;
 var LOCAL_CONFIG = {
   gym_nombre:'Mi Gimnasio', gym_sub:'', gym_logo:'',
   cuota_default:0, cuota_desde:'', cuota_mensaje:'',
-  cuota_por_dias:{2:0,3:0,4:0,5:0,6:0,7:0},
+  cuota_por_dias:{2:0,3:0,4:0,5:0},  // 5 = Pase libre Lun-Vie
   cuota_cambio_ts:0, cuota_nueva:0
 };
 var LOCAL_RUTINAS = [];
@@ -926,11 +918,11 @@ function estadoAl(a){
 function getCuotaEfectiva(al){
   var cp=LOCAL_CONFIG.cuota_por_dias||{};
   var dias=al.dias_semana;
-  if(dias&&cp[dias])return cp[dias];
-  return al.cuota||LOCAL_CONFIG.cuota_default||0;
+  if(dias&&cp[dias]&&cp[dias]>0)return cp[dias];
+  return al.cuota||0; // cuota individual si no hay config por días
 }
 function diasLabel(dias){
-  var L={2:'2 veces por semana',3:'3 veces por semana',4:'4 veces por semana',5:'5 veces por semana',6:'6 veces por semana',7:'Pase libre (todos los días)'};
+  var L={2:'2 veces por semana',3:'3 veces por semana',4:'4 veces por semana',5:'Pase libre (Lun a Vie)'};
   return L[dias]||'';
 }
 
@@ -1269,9 +1261,8 @@ function bindEvents(){
   document.getElementById('btn-close-pov').addEventListener('click',function(){document.getElementById('pov').classList.remove('on');});
   document.getElementById('btnout').addEventListener('click',doLogout);
   document.getElementById('btn-portal-logout').addEventListener('click',doLogout);
-  document.getElementById('btn-save-config').addEventListener('click',saveCuotaConfig);
+  document.getElementById('btn-save-config').addEventListener('click',function(){saveCuotaConfig();saveDiasCuotas();});
   document.getElementById('btn-save-gym').addEventListener('click',saveGymConfig);
-  document.getElementById('btn-save-dias-cuotas').addEventListener('click',saveDiasCuotas);
   document.getElementById('btn-export-cuotas').addEventListener('click',exportCuotasCSV);
   document.getElementById('btn-manual').addEventListener('click',function(){openModal('mo-manual');});
   document.getElementById('btn-notif-ok').addEventListener('click',function(){closeModal('mo-notif');});
@@ -2059,12 +2050,13 @@ function renderConfig(){
   var cp=LOCAL_CONFIG.cuota_por_dias||{};
   var dContainer=document.getElementById('cfg-dias-cuotas');
   if(dContainer){
-    dContainer.innerHTML=[2,3,4,5,6,7].map(function(d){
-      var label={2:'2 días/sem',3:'3 días/sem',4:'4 días/sem',5:'5 días/sem',6:'6 días/sem',7:'Todos los días'};
-      return '<div class="fr" style="gap:10px;align-items:center;margin-bottom:6px">'
-        +'<label style="width:130px;flex-shrink:0">'+label[d]+'</label>'
-        +'<input type="number" id="cfg-d'+d+'" value="'+(cp[d]||'')+'" placeholder="0 = usar general" style="flex:1">'
-        +'</div>';
+    var labels={2:'2 días/sem',3:'3 días/sem',4:'4 días/sem',5:'Pase libre (Lun-Vie)'};
+    dContainer.innerHTML=[2,3,4,5].map(function(d){
+      return '<div class="fr" style="gap:10px;align-items:center;margin-bottom:8px">'
+        +'<label style="width:170px;flex-shrink:0;font-weight:600">'+labels[d]+'</label>'
+        +'<div style="position:relative;flex:1"><span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--mu);font-size:13px">$</span>'
+        +'<input type="number" id="cfg-d'+d+'" value="'+(cp[d]||'')+'" placeholder="0" style="flex:1;padding-left:22px;width:100%">'
+        +'</div></div>';
     }).join('');
   }
   // Logo
@@ -2082,11 +2074,8 @@ function renderConfig(){
   }
 }
 function saveCuotaConfig(){
-  LOCAL_CONFIG.cuota_default=+document.getElementById('cfg-cuota').value||LOCAL_CONFIG.cuota_default;
-  LOCAL_CONFIG.cuota_desde=document.getElementById('cfg-desde').value;
   LOCAL_CONFIG.cuota_mensaje=document.getElementById('cfg-msg').value;
   markDirty('config','main');_lsSave();
-  toast('Configuración guardada ✓');
 }
 function saveGymConfig(){
   LOCAL_CONFIG.gym_nombre=document.getElementById('cfg-gymname').value.trim()||LOCAL_CONFIG.gym_nombre;
@@ -2100,14 +2089,16 @@ function saveGymConfig(){
 }
 function saveDiasCuotas(){
   var cp={};
-  [2,3,4,5,6,7].forEach(function(d){
+  [2,3,4,5].forEach(function(d){
     var el=document.getElementById('cfg-d'+d);
     var v=el?+el.value:0;
     if(v>0)cp[d]=v;
   });
   LOCAL_CONFIG.cuota_por_dias=cp;
+  var msg=document.getElementById('cfg-msg');
+  if(msg)LOCAL_CONFIG.cuota_mensaje=msg.value;
   markDirty('config','main');_lsSave();
-  toast('Cuotas por día guardadas ✓');renderAll();
+  toast('Cuotas guardadas ✓');renderAll();
 }
 
 // ── CUOTAS LISTA ──────────────────────────────────────────────
