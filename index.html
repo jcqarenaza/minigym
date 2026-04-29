@@ -834,100 +834,20 @@ var LOGO = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMj
 var PASS = 'mg2025';
 var editId = null;
 
+// ── DATOS LOCALES (caché — fuente real: Google Sheet) ─────────
+// Estos arrays se cargan desde localStorage al iniciar
+// y se actualizan con el Sheet al hacer login.
+// No hardcodear datos reales aquí.
+
 var LOCAL_CONFIG = {
   gym_nombre:'Mi Gimnasio', gym_sub:'', gym_logo:'',
   cuota_default:0, cuota_desde:'', cuota_mensaje:'',
-  cuota_por_dias:{2:0,3:0,4:0,5:0,6:0,7:0}, cuota_cambio_ts:0, cuota_nueva:0
+  cuota_por_dias:{2:0,3:0,4:0,5:0,6:0,7:0},
+  cuota_cambio_ts:0, cuota_nueva:0
 };
-var LOCAL_RUTINAS = [
-  {id:'r1',nombre:'Full Body A',objetivo:'Fuerza e hipertrofia general',dias:'3 días',nivel:'Intermedio',duracion:'60 min',semanas:'8',
-   programa:[
-     {dia:'Lunes',ejercicios:[
-       {nombre:'Sentadilla con barra',series:'4',reps:'8',peso:'',obs:'Espalda recta'},
-       {nombre:'Press de banca plano',series:'4',reps:'10',peso:'',obs:''},
-       {nombre:'Peso muerto',series:'3',reps:'6',peso:'',obs:''},
-       {nombre:'Dominadas',series:'3',reps:'8',peso:'',obs:''},
-       {nombre:'Press militar',series:'3',reps:'10',peso:'',obs:''},
-       {nombre:'Face pull',series:'3',reps:'15',peso:'',obs:''},
-       {nombre:'Curl de bíceps',series:'3',reps:'12',peso:'',obs:''},
-       {nombre:'Tríceps polea',series:'3',reps:'12',peso:'',obs:''}
-     ]},
-     {dia:'Miércoles',ejercicios:[
-       {nombre:'Sentadilla búlgara',series:'4',reps:'10',peso:'',obs:''},
-       {nombre:'Press mancuernas inclinado',series:'4',reps:'12',peso:'',obs:''},
-       {nombre:'Remo con barra',series:'4',reps:'8',peso:'',obs:'Codos pegados'},
-       {nombre:'Elevaciones laterales',series:'3',reps:'15',peso:'',obs:''},
-       {nombre:'Plancha',series:'3',reps:'45s',peso:'',obs:''},
-       {nombre:'Zancadas',series:'3',reps:'12',peso:'',obs:''}
-     ]},
-     {dia:'Viernes',ejercicios:[
-       {nombre:'Peso muerto rumano',series:'4',reps:'10',peso:'',obs:''},
-       {nombre:'Press de banca con agarre cerrado',series:'3',reps:'10',peso:'',obs:''},
-       {nombre:'Jalón al pecho',series:'4',reps:'12',peso:'',obs:''},
-       {nombre:'Fondos en paralelas',series:'3',reps:'12',peso:'',obs:''},
-       {nombre:'Curl martillo',series:'3',reps:'12',peso:'',obs:''},
-       {nombre:'Abdominales',series:'3',reps:'20',peso:'',obs:''}
-     ]}
-   ],
-   descripcion:'Descanso 90s entre series.'},
-  {id:'r2',nombre:'Push / Pull',objetivo:'Volumen muscular',dias:'4 días',nivel:'Avanzado',duracion:'75 min',semanas:'10',
-   programa:[
-     {dia:'Lunes (PUSH)',ejercicios:[
-       {nombre:'Press banca inclinado',series:'4',reps:'10',peso:'',obs:''},
-       {nombre:'Aperturas mancuernas',series:'3',reps:'12',peso:'',obs:''},
-       {nombre:'Press hombros',series:'4',reps:'10',peso:'',obs:''},
-       {nombre:'Elevaciones laterales',series:'4',reps:'15',peso:'',obs:''},
-       {nombre:'Fondos en paralelas',series:'3',reps:'12',peso:'',obs:''},
-       {nombre:'Extensión tríceps polea',series:'4',reps:'12',peso:'',obs:''}
-     ]},
-     {dia:'Martes (PULL)',ejercicios:[
-       {nombre:'Dominadas',series:'4',reps:'8',peso:'',obs:''},
-       {nombre:'Remo en máquina',series:'4',reps:'10',peso:'',obs:''},
-       {nombre:'Curl bíceps barra',series:'4',reps:'12',peso:'',obs:''},
-       {nombre:'Curl martillo',series:'3',reps:'12',peso:'',obs:''},
-       {nombre:'Jalón al pecho',series:'3',reps:'12',peso:'',obs:''},
-       {nombre:'Face pull',series:'3',reps:'15',peso:'',obs:''}
-     ]},
-     {dia:'Jueves (PUSH)',ejercicios:[
-       {nombre:'Press banca plano',series:'4',reps:'8',peso:'',obs:''},
-       {nombre:'Press inclinado mancuernas',series:'3',reps:'12',peso:'',obs:''},
-       {nombre:'Elevaciones frontales',series:'3',reps:'12',peso:'',obs:''},
-       {nombre:'Extensión tríceps cuerda',series:'4',reps:'15',peso:'',obs:''},
-       {nombre:'Vuelo inverso',series:'3',reps:'15',peso:'',obs:''}
-     ]},
-     {dia:'Viernes (PULL)',ejercicios:[
-       {nombre:'Peso muerto',series:'4',reps:'6',peso:'',obs:''},
-       {nombre:'Remo unilateral',series:'4',reps:'10',peso:'',obs:''},
-       {nombre:'Curl predicador',series:'3',reps:'12',peso:'',obs:''},
-       {nombre:'Pullover',series:'3',reps:'12',peso:'',obs:''},
-       {nombre:'Encogimientos',series:'3',reps:'15',peso:'',obs:''}
-     ]}
-   ],
-   descripcion:'Lunes/jueves PUSH, martes/viernes PULL.'},
-  {id:'r3',nombre:'Funcional Principiante',objetivo:'Acondicionamiento general',dias:'3 días',nivel:'Principiante',duracion:'45 min',semanas:'6',
-   programa:[
-     {dia:'Lunes',ejercicios:[
-       {nombre:'Sentadilla peso corporal',series:'3',reps:'15',peso:'',obs:''},
-       {nombre:'Flexiones de brazos',series:'3',reps:'10',peso:'',obs:''},
-       {nombre:'Plancha',series:'3',reps:'30s',peso:'',obs:''},
-       {nombre:'Glute bridge',series:'3',reps:'15',peso:'',obs:''}
-     ]},
-     {dia:'Miércoles',ejercicios:[
-       {nombre:'Zancadas',series:'3',reps:'12',peso:'',obs:'Por pierna'},
-       {nombre:'Remo con banda',series:'3',reps:'15',peso:'',obs:''},
-       {nombre:'Superman',series:'3',reps:'12',peso:'',obs:''},
-       {nombre:'Crunches',series:'3',reps:'20',peso:'',obs:''}
-     ]},
-     {dia:'Viernes',ejercicios:[
-       {nombre:'Sentadilla con salto',series:'3',reps:'10',peso:'',obs:''},
-       {nombre:'Burpees',series:'3',reps:'8',peso:'',obs:''},
-       {nombre:'Plancha lateral',series:'3',reps:'20s',peso:'',obs:''},
-       {nombre:'Elevación de piernas',series:'3',reps:'15',peso:'',obs:''}
-     ]}
-   ],
-   descripcion:'Enfoque en técnica antes de agregar peso.'}
-];
+var LOCAL_RUTINAS = [];
 var LOCAL_ALUMNOS = [];
+
 
 // ── JSONP API (file:// compatible) ────────────────────────────
 var _cbN=0;
@@ -1006,7 +926,9 @@ function doLogout(){
   document.getElementById('portal').classList.remove('show');
   document.getElementById('login').style.display='flex';
   document.getElementById('lpass').value='';
-  if(_loopT)clearTimeout(_loopT);
+  if(_syncT)clearTimeout(_syncT);
+  window._alumnos=null;window._rutinas=null;window._pagos=null;
+  _online=false;_dirty={};_updateSyncStatus();
 }
 function openPortal(al){
   window._portalAl=al;
@@ -1167,15 +1089,20 @@ function _pullSheet(){
   return Promise.all([
     api('getAlumnos').then(function(r){var d=r.data||r||[];if(d.length)window._alumnos=d;}),
     api('getRutinas').then(function(r){var d=r.data||r||[];if(d.length)window._rutinas=d;}),
+    api('getAllPagos').then(function(r){var d=r.data||r||[];if(d.length)window._pagos=d;}).catch(function(){}),
     api('getConfig').then(function(r){
       var d=r.data||r||{};
       if(d&&typeof d==='object'&&d.gym_nombre){
-        // Merge sheet config into LOCAL_CONFIG (sheet wins)
         Object.keys(d).forEach(function(k){LOCAL_CONFIG[k]=d[k];});
         _applyGymIdentity();
       }
-    }).catch(function(){}),// config errors are non-fatal
-  ]).then(function(){_online=true;_updateSyncStatus();renderAll();})
+    }).catch(function(){}),
+  ]).then(function(){
+    _online=true;
+    _lsSave(); // ← guardar en localStorage después de pull exitoso
+    _updateSyncStatus();
+    renderAll();
+  })
   .catch(function(){_online=false;_updateSyncStatus();});
 }
 function _forceSyncAll(){
@@ -1186,11 +1113,49 @@ function _forceSyncAll(){
   chain.then(function(){_dirty={};_online=true;loading(false);toast('✅ Sincronizado');_updateSyncStatus();_pullSheet();})
     .catch(function(){loading(false);toastErr('Error sincronizando');});
 }
+// ── LOCALSTORAGE CACHE ────────────────────────────────────────
+var _LS_KEY_AL  = 'gymos_alumnos';
+var _LS_KEY_RUT = 'gymos_rutinas';
+var _LS_KEY_CFG = 'gymos_config';
+var _LS_KEY_PG  = 'gymos_pagos';
+
+function _lsSave(){
+  try{
+    if(window._alumnos) localStorage.setItem(_LS_KEY_AL,  JSON.stringify(window._alumnos));
+    if(window._rutinas) localStorage.setItem(_LS_KEY_RUT, JSON.stringify(window._rutinas));
+    if(window._pagos)   localStorage.setItem(_LS_KEY_PG,  JSON.stringify(window._pagos));
+    localStorage.setItem(_LS_KEY_CFG, JSON.stringify(LOCAL_CONFIG));
+  }catch(e){}
+}
+
+function _lsLoad(){
+  try{
+    var al  = localStorage.getItem(_LS_KEY_AL);
+    var rut = localStorage.getItem(_LS_KEY_RUT);
+    var pg  = localStorage.getItem(_LS_KEY_PG);
+    var cfg = localStorage.getItem(_LS_KEY_CFG);
+    if(al)  window._alumnos = JSON.parse(al);
+    if(rut) window._rutinas = JSON.parse(rut);
+    if(pg)  window._pagos   = JSON.parse(pg);
+    if(cfg){
+      var c=JSON.parse(cfg);
+      Object.keys(c).forEach(function(k){LOCAL_CONFIG[k]=c[k];});
+    }
+  }catch(e){}
+}
+
 function loadAll(){
-  if(!window._alumnos)window._alumnos=LOCAL_ALUMNOS.map(function(a){return JSON.parse(JSON.stringify(a));});
-  if(!window._rutinas)window._rutinas=LOCAL_RUTINAS.map(function(r){return JSON.parse(JSON.stringify(r));});
-  renderAll();_updateSyncStatus();
-  // Pull Sheet data on login (async, updates UI when ready)
+  // 1. Cargar caché local (instantáneo)
+  _lsLoad();
+  // 2. Fallback a arrays vacíos si no hay caché
+  if(!window._alumnos) window._alumnos=[];
+  if(!window._rutinas) window._rutinas=[];
+  if(!window._pagos)   window._pagos=[];
+  // 3. Mostrar datos cacheados de inmediato
+  _applyGymIdentity();
+  renderAll();
+  _updateSyncStatus();
+  // 4. Sincronizar con Sheet en background
   _pullSheet();
 }
 function renderAll(){renderDash();renderAlumnos();renderRutinas();renderPagos();fillPrint();updateBadge();}
@@ -1354,12 +1319,12 @@ function saveAlumno(){
   }
   var idx=(window._alumnos||[]).findIndex(function(x){return x.id===data.id;});
   if(idx>=0){window._alumnos[idx]=data;}else{window._alumnos.push(data);}
-  closeModal('mo-al');toast('Alumno guardado ✓');renderAll();markDirty('alumno',data.id);
+  closeModal('mo-al');toast('Alumno guardado ✓');_lsSave();renderAll();markDirty('alumno',data.id);
 }
 function delAlumno(id){
   if(!confirm('¿Eliminar este alumno?'))return;
   window._alumnos=(window._alumnos||[]).filter(function(x){return x.id!==id;});
-  toast('Alumno eliminado');renderAll();
+  toast('Alumno eliminado');_lsSave();renderAll();
   api('deleteAlumno',{id:id}).then(function(){_online=true;_updateSyncStatus();}).catch(function(){_online=false;_updateSyncStatus();});
 }
 function calcIMC(){
@@ -1719,7 +1684,7 @@ function saveRutina(){
   };
   var ri=(window._rutinas||[]).findIndex(function(x){return x.id===data.id;});
   if(ri>=0){window._rutinas[ri]=data;}else{window._rutinas.push(data);}
-  closeModal('mo-rut');toast('Programa guardado ✓');renderAll();markDirty('rutina',data.id);
+  closeModal('mo-rut');toast('Programa guardado ✓');_lsSave();renderAll();markDirty('rutina',data.id);
 }
 function pvRutinaId(rid,aid,obs){
   var r=(window._rutinas||[]).find(function(x){return x.id==rid;});if(!r)return;
@@ -1917,12 +1882,12 @@ function savePago(){
   if(ai>=0){window._alumnos[ai].ultimo_pago=fecha;markDirty('alumno',alumno_id);}
   // Send pago to GAS
   api('savePago',{payload:JSON.stringify(pago)});
-  closeModal('mo-pg');toast('Pago registrado ✓');renderAll();
+  closeModal('mo-pg');toast('Pago registrado ✓');_lsSave();renderAll();
 }
 function delRutina(id){
   if(!confirm('¿Eliminar esta rutina?'))return;
   window._rutinas=(window._rutinas||[]).filter(function(x){return x.id!==id;});
-  toast('Rutina eliminada');renderRutinas();markDirty('rutina',id);
+  toast('Rutina eliminada');_lsSave();renderRutinas();markDirty('rutina',id);
 }
 
 // ── PRINT HELPERS ─────────────────────────────────────────────
@@ -2013,7 +1978,7 @@ function saveCuotaConfig(){
   LOCAL_CONFIG.cuota_default=+document.getElementById('cfg-cuota').value||LOCAL_CONFIG.cuota_default;
   LOCAL_CONFIG.cuota_desde=document.getElementById('cfg-desde').value;
   LOCAL_CONFIG.cuota_mensaje=document.getElementById('cfg-msg').value;
-  markDirty('config','main');
+  markDirty('config','main');_lsSave();
   toast('Configuración guardada ✓');
 }
 function saveGymConfig(){
@@ -2023,7 +1988,7 @@ function saveGymConfig(){
   if(url)LOCAL_CONFIG.gym_logo=url;
   else if(LOCAL_CONFIG.gym_logo&&LOCAL_CONFIG.gym_logo.startsWith('data:')){}// keep file upload
   _applyGymIdentity();
-  markDirty('config','main');
+  markDirty('config','main');_lsSave();
   toast('Identidad del gym guardada ✓');
 }
 function saveDiasCuotas(){
@@ -2034,7 +1999,7 @@ function saveDiasCuotas(){
     if(v>0)cp[d]=v;
   });
   LOCAL_CONFIG.cuota_por_dias=cp;
-  markDirty('config','main');
+  markDirty('config','main');_lsSave();
   toast('Cuotas por día guardadas ✓');renderAll();
 }
 
