@@ -413,6 +413,7 @@ textarea{resize:vertical;min-height:60px}
       <button class="ni" data-page="alumnos">👥 Alumnos</button>
       <button class="ni" data-page="rutinas">💪 Rutinas</button>
       <div class="sec">Gestión</div>
+      <button class="ni" data-page="asistencia">📅 Asistencia</button>
       <button class="ni" data-page="pagos">💰 Cuotas & Pagos <span class="nbadge" id="nbadge"></span></button>
       <button class="ni" data-page="cuotas-lista">📋 Listado de cuotas</button>
       <div class="sec">Documentos</div>
@@ -618,7 +619,51 @@ textarea{resize:vertical;min-height:60px}
   </div>
 </div>
 
-<!-- MODAL ALUMNO -->
+
+  <!-- PÁGINA ASISTENCIA -->
+  <div class="page" id="page-asistencia">
+    <div class="ph"><div><div class="ptitle">Asistencia</div><div id="tb-date-as" style="font-size:13px;color:var(--t2)"></div></div></div>
+
+    <!-- Hoy -->
+    <div class="card cp" style="border-left:4px solid var(--green);margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div class="ct" style="margin:0">📍 Presentes hoy</div>
+        <span id="as-hoy-count" style="font-size:22px;font-weight:800;color:var(--gd)">0</span>
+      </div>
+      <div id="as-hoy-list" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--bor);display:flex;gap:10px;align-items:center">
+        <select id="as-sel-al" style="flex:1"></select>
+        <button class="btn bp" id="btn-as-marcar">✓ Marcar presente</button>
+      </div>
+    </div>
+
+    <!-- Ausentes hace +7 días -->
+    <div class="card cp" style="border-left:4px solid var(--am);margin-bottom:16px">
+      <div class="ct">⚠️ Sin venir hace más de 7 días</div>
+      <div id="as-ausentes-list" style="margin-top:8px"></div>
+    </div>
+
+    <!-- Gráfico semanal -->
+    <div class="card cp" style="border-left:4px solid var(--bl);margin-bottom:16px">
+      <div class="ct">📊 Concurrencia últimas 4 semanas</div>
+      <div id="as-grafico" style="margin-top:14px"></div>
+    </div>
+
+    <!-- Historial -->
+    <div class="card cp">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div class="ct" style="margin:0">🗓 Historial</div>
+        <div style="display:flex;gap:8px">
+          <select id="as-fil-al" style="font-size:12px"><option value="">Todos los alumnos</option></select>
+          <input type="month" id="as-fil-mes" style="font-size:12px">
+        </div>
+      </div>
+      <table class="tbl"><thead><tr><th>Fecha</th><th>Alumno</th><th>N°</th></tr></thead>
+      <tbody id="tb-as"></tbody></table>
+    </div>
+  </div>
+
+  <!-- MODAL ALUMNO -->
 <div class="mo" id="mo-al">
   <div class="modal">
     <div class="mhd"><div class="mtitle" id="mo-al-title">Alumno</div><button class="xb mo-close" data-mo="mo-al">✕</button></div>
@@ -859,6 +904,7 @@ var LOCAL_CONFIG = {
 };
 var LOCAL_RUTINAS = [];
 var LOCAL_ALUMNOS = [];
+var LOCAL_ASISTENCIAS = []; // [{id, alumno_id, nombre, num, fecha}]
 
 
 // ── JSONP API (file:// compatible) ────────────────────────────
@@ -866,7 +912,7 @@ var _cbN=0;
 function api(action,params){
   // GET requests (lecturas) — JSONP para compatibilidad file://
   // POST requests (escrituras) — fetch JSON para compatibilidad https://
-  var isWrite = ['saveAlumno','saveRutina','savePago','saveConfig',
+  var isWrite = ['saveAlumno','saveRutina','savePago','saveConfig','saveAsistencia',
                  'deleteAlumno','deleteRutina'].indexOf(action) >= 0;
   if(isWrite){
     // POST via fetch
@@ -973,6 +1019,9 @@ function doLogout(){
 }
 function openPortal(al){
   window._portalAl=al;
+  // Registrar asistencia automáticamente al entrar al portal
+  var registrado = registrarAsistencia(al.id);
+  if(registrado) toast('Asistencia registrada ✓');
   document.getElementById('pt-nombre').textContent=al.nombre||'—';
   document.getElementById('pt-num').textContent=al.num||'—';
   var cuota=getCuotaEfectiva(al);
@@ -1173,6 +1222,7 @@ function _pullSheet(){
     api('getAlumnos').then(function(r){var d=r.data||r||[];if(d.length)window._alumnos=d;}),
     api('getRutinas').then(function(r){var d=r.data||r||[];if(d.length)window._rutinas=d;}),
     api('getAllPagos').then(function(r){var d=r.data||r||[];if(d.length)window._pagos=d;}).catch(function(){}),
+    api('getAsistencias').then(function(r){var d=r.data||r||[];if(d.length)window._asistencias=d;}).catch(function(){}),
     api('getConfig').then(function(r){
       var d=r.data||r||{};
       if(d&&typeof d==='object'&&d.gym_nombre){
@@ -1213,6 +1263,7 @@ function _lsSave(){
     if(window._alumnos) localStorage.setItem(_LS_KEY_AL,  JSON.stringify(window._alumnos));
     if(window._rutinas) localStorage.setItem(_LS_KEY_RUT, JSON.stringify(window._rutinas));
     if(window._pagos)   localStorage.setItem(_LS_KEY_PG,  JSON.stringify(window._pagos));
+    if(window._asistencias) localStorage.setItem('gymos_asistencias', JSON.stringify(window._asistencias));
     localStorage.setItem(_LS_KEY_CFG, JSON.stringify(LOCAL_CONFIG));
   }catch(e){}
 }
@@ -1226,6 +1277,8 @@ function _lsLoad(){
     if(al)  window._alumnos = JSON.parse(al);
     if(rut) window._rutinas = JSON.parse(rut);
     if(pg)  window._pagos   = JSON.parse(pg);
+    var as = localStorage.getItem('gymos_asistencias');
+    if(as) window._asistencias = JSON.parse(as);
     if(cfg){
       var c=JSON.parse(cfg);
       Object.keys(c).forEach(function(k){LOCAL_CONFIG[k]=c[k];});
@@ -1240,6 +1293,7 @@ function loadAll(){
   if(!window._alumnos) window._alumnos=[];
   if(!window._rutinas) window._rutinas=[];
   if(!window._pagos)   window._pagos=[];
+  if(!window._asistencias) window._asistencias=[];
   // 3. Mostrar datos cacheados de inmediato
   _applyGymIdentity();
   renderAll();
@@ -1253,7 +1307,176 @@ function loadAll(){
     _pullSheetSilent();
   }
 }
-function renderAll(){renderDash();renderAlumnos();renderRutinas();renderPagos();fillPrint();updateBadge();}
+
+// ── ASISTENCIA ────────────────────────────────────────────────
+function hoy(){ return new Date().toISOString().split('T')[0]; }
+
+function registrarAsistencia(alumno_id){
+  var alumnos = window._alumnos||[];
+  var al = alumnos.find(function(a){return a.id===alumno_id;});
+  if(!al) return false;
+  var fecha = hoy();
+  var asis = window._asistencias||[];
+  // No duplicar si ya marcó hoy
+  var yaMarco = asis.some(function(a){return a.alumno_id===alumno_id && a.fecha===fecha;});
+  if(yaMarco) return false;
+  var reg = {id:'as'+uid(), alumno_id:alumno_id, nombre:al.nombre, num:al.num, fecha:fecha};
+  asis.push(reg);
+  window._asistencias = asis;
+  _lsSave();
+  // Sync al Sheet
+  api('saveAsistencia',{payload:JSON.stringify(reg)});
+  return true;
+}
+
+function renderAsistencia(){
+  var asis  = window._asistencias||[];
+  var alumnos = window._alumnos||[];
+  var fechaHoy = hoy();
+
+  // Fecha header
+  var dEl = document.getElementById('tb-date-as');
+  if(dEl) dEl.textContent = new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
+
+  // ── Presentes hoy ──
+  var presHoy = asis.filter(function(a){return a.fecha===fechaHoy;});
+  var countEl = document.getElementById('as-hoy-count');
+  if(countEl) countEl.textContent = presHoy.length;
+  var listEl = document.getElementById('as-hoy-list');
+  if(listEl){
+    if(presHoy.length){
+      listEl.innerHTML = presHoy.map(function(a){
+        return '<div style="display:flex;align-items:center;gap:6px;background:var(--gl);border-radius:8px;padding:6px 10px">'
+          +'<div class="av" style="width:28px;height:28px;font-size:11px;background:'+color(a.nombre)+'">'+initials(a.nombre)+'</div>'
+          +'<div><div style="font-size:12px;font-weight:700">'+a.nombre+'</div>'
+          +'<div style="font-size:10px;color:var(--mu)">N°'+a.num+'</div></div>'
+          +'</div>';
+      }).join('');
+    } else {
+      listEl.innerHTML = '<div style="color:var(--mu);font-size:13px">Nadie marcó asistencia hoy todavía.</div>';
+    }
+  }
+
+  // ── Select marcar presente ──
+  var selAl = document.getElementById('as-sel-al');
+  if(selAl){
+    // Solo alumnos que NO vinieron hoy
+    var presIds = new Set(presHoy.map(function(a){return a.alumno_id;}));
+    var pendientes = alumnos.filter(function(a){return !presIds.has(a.id);});
+    selAl.innerHTML = pendientes.length
+      ? '<option value="">— Seleccioná alumno —</option>'+pendientes.map(function(a){
+          return '<option value="'+a.id+'">N°'+a.num+' — '+a.nombre+'</option>';
+        }).join('')
+      : '<option value="">✓ Todos marcaron hoy</option>';
+  }
+
+  // ── Ausentes hace +7 días ──
+  var ausEl = document.getElementById('as-ausentes-list');
+  if(ausEl){
+    var hoyDate = new Date(fechaHoy);
+    var ausentes = alumnos.filter(function(al){
+      var ultAsis = asis.filter(function(a){return a.alumno_id===al.id;})
+        .sort(function(a,b){return b.fecha.localeCompare(a.fecha);})[0];
+      if(!ultAsis) return true; // nunca vino
+      var diff = (hoyDate - new Date(ultAsis.fecha)) / 86400000;
+      return diff > 7;
+    });
+    if(ausentes.length){
+      ausEl.innerHTML = ausentes.map(function(al){
+        var ultAsis = asis.filter(function(a){return a.alumno_id===al.id;})
+          .sort(function(a,b){return b.fecha.localeCompare(a.fecha);})[0];
+        var dias = ultAsis
+          ? Math.floor((hoyDate - new Date(ultAsis.fecha)) / 86400000)
+          : null;
+        return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bor)">'
+          +'<div style="display:flex;align-items:center;gap:8px">'
+          +'<div class="av" style="width:30px;height:30px;font-size:11px;background:'+color(al.nombre)+'">'+initials(al.nombre)+'</div>'
+          +'<div><div style="font-size:13px;font-weight:600">'+al.nombre+'</div>'
+          +'<div style="font-size:11px;color:var(--mu)">N°'+al.num+(al.tipo?' · '+al.tipo:'')+'</div></div></div>'
+          +'<span style="font-size:12px;color:var(--am);font-weight:700">'+(dias?dias+' días':'Nunca vino')+'</span>'
+          +'</div>';
+      }).join('');
+    } else {
+      ausEl.innerHTML = '<div style="color:var(--ok);font-size:13px">✓ Todos vinieron en los últimos 7 días.</div>';
+    }
+  }
+
+  // ── Gráfico últimas 4 semanas ──
+  var grafEl = document.getElementById('as-grafico');
+  if(grafEl){
+    // Contar asistencias por día en los últimos 28 días
+    var dias28 = [];
+    for(var i=27;i>=0;i--){
+      var d = new Date(); d.setDate(d.getDate()-i);
+      dias28.push(d.toISOString().split('T')[0]);
+    }
+    var counts = {};
+    dias28.forEach(function(d){counts[d]=0;});
+    asis.forEach(function(a){if(counts[a.fecha]!==undefined)counts[a.fecha]++;});
+    var maxVal = Math.max.apply(null, Object.values(counts).concat([1]));
+
+    // Simple bar chart with CSS
+    var semanas = [dias28.slice(0,7),dias28.slice(7,14),dias28.slice(14,21),dias28.slice(21,28)];
+    var html = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">';
+    semanas.forEach(function(sem, si){
+      var total = sem.reduce(function(s,d){return s+(counts[d]||0);},0);
+      var label = si===3?'Esta semana':'Hace '+(3-si)+' sem';
+      html += '<div style="text-align:center">'
+        +'<div style="font-size:11px;color:var(--mu);margin-bottom:6px">'+label+'</div>'
+        +'<div style="display:flex;align-items:flex-end;justify-content:center;gap:2px;height:60px">';
+      sem.forEach(function(d){
+        var c = counts[d]||0;
+        var h2 = maxVal>0?Math.round((c/maxVal)*56)+4:4;
+        var isToday = d===fechaHoy;
+        html += '<div title="'+d+': '+c+' presentes" style="width:10px;height:'+h2+'px;border-radius:3px 3px 0 0;background:'+(isToday?'var(--green)':c>0?'var(--bl)':'var(--bor)')+'"></div>';
+      });
+      html += '</div>'
+        +'<div style="font-size:18px;font-weight:800;color:var(--navy);margin-top:4px">'+total+'</div>'
+        +'<div style="font-size:10px;color:var(--mu)">asistencias</div>'
+        +'</div>';
+    });
+    html += '</div>';
+    grafEl.innerHTML = html;
+  }
+
+  // ── Historial ──
+  var filAl = (document.getElementById('as-fil-al')||{}).value||'';
+  var filMes = (document.getElementById('as-fil-mes')||{}).value||'';
+  var selFilAl = document.getElementById('as-fil-al');
+  if(selFilAl && selFilAl.options.length<=1){
+    selFilAl.innerHTML = '<option value="">Todos los alumnos</option>'
+      +alumnos.map(function(a){return '<option value="'+a.id+'">'+a.nombre+'</option>';}).join('');
+  }
+  var filMesEl = document.getElementById('as-fil-mes');
+  if(filMesEl && !filMesEl.value) filMesEl.value = fechaHoy.slice(0,7);
+
+  var hist = asis.filter(function(a){
+    if(filAl && a.alumno_id!==filAl) return false;
+    if(filMes && !a.fecha.startsWith(filMes)) return false;
+    return true;
+  }).sort(function(a,b){return b.fecha.localeCompare(a.fecha);});
+
+  var tbAs = document.getElementById('tb-as');
+  if(tbAs){
+    tbAs.innerHTML = hist.length
+      ? hist.map(function(a){
+          return '<tr><td>'+fmt(a.fecha)+'</td>'
+            +'<td><div class="arow"><div class="av" style="background:'+color(a.nombre)+'">'+initials(a.nombre)+'</div>'+a.nombre+'</div></td>'
+            +'<td style="font-family:monospace;font-weight:700;color:var(--gd)">'+a.num+'</td></tr>';
+        }).join('')
+      : '<tr><td colspan="3" style="text-align:center;color:var(--mu);padding:20px">Sin registros</td></tr>';
+  }
+}
+
+function marcarAsistenciaManual(){
+  var id = document.getElementById('as-sel-al').value;
+  if(!id){ toast('Seleccioná un alumno'); return; }
+  var ok = registrarAsistencia(id);
+  if(ok){ toast('Asistencia registrada ✓'); renderAsistencia(); }
+  else  { toast('Ya marcó asistencia hoy'); }
+}
+
+function renderAll(){renderDash();renderAlumnos();renderRutinas();renderPagos();renderAsistencia();fillPrint();updateBadge();}
 function updateBadge(){
   var v=(window._alumnos||[]).filter(function(a){return estadoAl(a).dias<0;}).length;
   var b=document.getElementById('nbadge');
@@ -1291,6 +1514,12 @@ function bindEvents(){
   document.getElementById('btn-save-config').addEventListener('click',function(){saveCuotaConfig();saveDiasCuotas();});
   document.getElementById('btn-save-gym').addEventListener('click',saveGymConfig);
   document.getElementById('btn-export-cuotas').addEventListener('click',exportCuotasCSV);
+  var btnAsMarcar=document.getElementById('btn-as-marcar');
+  if(btnAsMarcar)btnAsMarcar.addEventListener('click',marcarAsistenciaManual);
+  var asFilAl=document.getElementById('as-fil-al');
+  if(asFilAl)asFilAl.addEventListener('change',renderAsistencia);
+  var asFilMes=document.getElementById('as-fil-mes');
+  if(asFilMes)asFilMes.addEventListener('change',renderAsistencia);
   document.getElementById('btn-manual').addEventListener('click',function(){openModal('mo-manual');});
   document.getElementById('btn-notif-ok').addEventListener('click',function(){closeModal('mo-notif');});
   document.getElementById('btn-guardar-nota').addEventListener('click',guardarNota);
