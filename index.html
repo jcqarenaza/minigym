@@ -381,6 +381,124 @@ textarea{resize:vertical;min-height:60px}
 .ac-item:last-child{border-bottom:none;}
 .ac-item:hover,.ac-item.on{background:var(--gl);color:var(--gd);font-weight:600;}
 .ac-item mark{background:none;color:var(--gd);font-weight:800;}
+
+/* ══════════════════════════════════════════════════════════════
+   RESPONSIVE — MOBILE FIRST
+   ══════════════════════════════════════════════════════════════ */
+
+/* Sidebar toggle button — solo mobile */
+.sb-toggle{display:none;position:fixed;bottom:18px;right:18px;z-index:300;
+  width:48px;height:48px;border-radius:50%;background:var(--navy);color:#fff;
+  border:none;font-size:22px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25);
+  align-items:center;justify-content:center;}
+
+/* Overlay cuando sidebar está abierto en mobile */
+.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:198;}
+.sb-overlay.on{display:block;}
+
+/* Tablas con scroll horizontal */
+.tbl-wrap,.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.tbl,.table-wrap table{min-width:520px;width:100%;border-collapse:collapse;}
+
+/* Modales base ya responsive — forzar ancho en mobile */
+.modal{
+  border-radius:14px 14px 0 0 !important;
+  margin:auto auto 0 auto !important;
+  max-height:92vh !important;
+}
+
+@media(max-width:700px){
+
+  /* ── Layout ── */
+  #app{flex-direction:column;}
+
+  .sb{
+    position:fixed;left:-220px;top:0;bottom:0;z-index:200;
+    transition:left .22s ease;box-shadow:none;width:214px;
+  }
+  .sb.open{left:0;box-shadow:4px 0 20px rgba(0,0,0,.18);}
+
+  .sb-toggle{display:flex;}
+
+  .main{overflow-y:auto;height:100vh;}
+
+  /* ── Pages ── */
+  .ph{padding:14px 14px 10px;}
+  .ptitle{font-size:18px;}
+  .page{padding:0 10px 80px !important;}
+
+  /* ── Cards ── */
+  .card{border-radius:9px;}
+  .cp{padding:13px 13px !important;}
+  .g2,.g3,.g4{grid-template-columns:1fr !important;}
+
+  /* ── Flex rows → columna ── */
+  .fr.c2,.fr.c3,.fr.c4{flex-direction:column;}
+
+  /* ── Tablas ── */
+  .tbl-wrap{margin:0 -10px;padding:0 10px;}
+  .tbl{font-size:11px;}
+  .tbl th,.tbl td{padding:7px 6px;}
+
+  /* ── Botones ── */
+  .btn{font-size:12px;padding:7px 11px;}
+  .bsm{padding:5px 9px !important;font-size:11px !important;}
+
+  /* ── Modales ── */
+  .mo{padding:0 !important;align-items:flex-end !important;}
+
+  .modal{
+    width:100vw !important;
+    max-width:100vw !important;
+    border-radius:16px 16px 0 0 !important;
+    margin:0 !important;
+    max-height:94vh !important;
+  }
+
+  /* Handle inside modal to indicate swipe */
+  .modal::before{
+    content:'';display:block;width:36px;height:4px;
+    background:var(--b2);border-radius:2px;
+    margin:10px auto 0;
+  }
+
+  .mhd{padding:12px 16px 10px !important;}
+  .tabs{margin:0 16px 10px !important;}
+  .mo-scroll{padding:0 16px !important;}
+  .mft{padding:12px 16px 20px !important;}
+
+  /* ── Login ── */
+  .lbox{padding:28px 20px !important;border-radius:14px !important;width:92vw !important;max-width:360px !important;}
+
+  /* ── Portal ── */
+  .portal-inner{padding:14px !important;}
+  .portal-grid{grid-template-columns:1fr !important;}
+
+  /* ── Sidebar bottom ── */
+  .sb-bot{padding:10px 12px !important;}
+
+  /* ── Page header actions ── */
+  .ph{flex-direction:column;gap:10px;align-items:flex-start !important;}
+  .ph > div:last-child{width:100%;}
+  .ph button{width:100%;}
+
+  /* ── Filtros / buscadores ── */
+  .fr.fbar{flex-wrap:wrap;}
+  .fr.fbar input,.fr.fbar select{flex:1;min-width:0;}
+
+  /* ── Stats dashboard ── */
+  .sg{grid-template-columns:repeat(2,1fr) !important;}
+
+  /* ── Asistencia presentes ── */
+  #as-grafico > div{grid-template-columns:repeat(2,1fr) !important;}
+}
+
+@media(max-width:400px){
+  .stats{grid-template-columns:1fr 1fr !important;}
+  .tbl{font-size:10px;}
+  .tbl th,.tbl td{padding:5px 4px;}
+}
+
 </style>
 </head>
 <body>
@@ -401,8 +519,10 @@ textarea{resize:vertical;min-height:60px}
 <div class="toast" id="toast"></div>
 
 <!-- APP -->
+<button class="sb-toggle" id="sb-toggle" onclick="toggleSidebar()">☰</button>
+<div class="sb-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
 <div id="app">
-  <div class="sb">
+  <div class="sb" id="sb-main">
     <div class="sb-top">
       <img class="sb-logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyODAgODAiPjxyZWN0IHg9IjIiIHk9IjI0IiB3aWR0aD0iOSIgaGVpZ2h0PSIzMiIgcng9IjMiIGZpbGw9IiM5Y2EzYWYiLz48cmVjdCB4PSIxMyIgeT0iMTYiIHdpZHRoPSI3IiBoZWlnaHQ9IjQ4IiByeD0iMyIgZmlsbD0iIzZiNzI4MCIvPjxyZWN0IHg9IjIyIiB5PSIxMCIgd2lkdGg9IjkiIGhlaWdodD0iNjAiIHJ4PSIzIiBmaWxsPSIjOWNhM2FmIi8+PHJlY3QgeD0iMzEiIHk9IjM0IiB3aWR0aD0iNzgiIGhlaWdodD0iMTIiIHJ4PSI2IiBmaWxsPSIjOWNhM2FmIi8+PHJlY3QgeD0iNTEiIHk9IjM3IiB3aWR0aD0iMyIgaGVpZ2h0PSI2IiByeD0iMSIgZmlsbD0iIzZiNzI4MCIgb3BhY2l0eT0iLjUiLz48cmVjdCB4PSI2MiIgeT0iMzciIHdpZHRoPSIzIiBoZWlnaHQ9IjYiIHJ4PSIxIiBmaWxsPSIjNmI3MjgwIiBvcGFjaXR5PSIuNSIvPjxyZWN0IHg9IjczIiB5PSIzNyIgd2lkdGg9IjMiIGhlaWdodD0iNiIgcng9IjEiIGZpbGw9IiM2YjcyODAiIG9wYWNpdHk9Ii41Ii8+PHJlY3QgeD0iODQiIHk9IjM3IiB3aWR0aD0iMyIgaGVpZ2h0PSI2IiByeD0iMSIgZmlsbD0iIzZiNzI4MCIgb3BhY2l0eT0iLjUiLz48cmVjdCB4PSI5NSIgeT0iMzciIHdpZHRoPSIzIiBoZWlnaHQ9IjYiIHJ4PSIxIiBmaWxsPSIjNmI3MjgwIiBvcGFjaXR5PSIuNSIvPjxyZWN0IHg9IjEwOSIgeT0iMTAiIHdpZHRoPSI5IiBoZWlnaHQ9IjYwIiByeD0iMyIgZmlsbD0iIzljYTNhZiIvPjxyZWN0IHg9IjEyMCIgeT0iMTYiIHdpZHRoPSI3IiBoZWlnaHQ9IjQ4IiByeD0iMyIgZmlsbD0iIzZiNzI4MCIvPjxyZWN0IHg9IjEyOSIgeT0iMjQiIHdpZHRoPSI5IiBoZWlnaHQ9IjMyIiByeD0iMyIgZmlsbD0iIzljYTNhZiIvPjx0ZXh0IHg9IjE1MiIgeT0iNjAiIGZvbnQtZmFtaWx5PSJBcmlhbCBCbGFjayxBcmlhbCxzYW5zLXNlcmlmIiBmb250LXdlaWdodD0iOTAwIiBmb250LXNpemU9IjUyIiBmaWxsPSIjMWEyNjNhIiBsZXR0ZXItc3BhY2luZz0iLTIiPk1HPC90ZXh0Pjwvc3ZnPg==" alt="GymOS">
       <div><div class="sb-gym" id="sb-gymname">GymOS</div><div class="sb-sub" id="sb-gymsub">Admin</div></div>
@@ -658,7 +778,7 @@ textarea{resize:vertical;min-height:60px}
           <input type="month" id="as-fil-mes" style="font-size:12px">
         </div>
       </div>
-      <table class="tbl"><thead><tr><th>Fecha</th><th>Alumno</th><th>N°</th></tr></thead>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Fecha</th><th>Alumno</th><th>N°</th></tr></thead>
       <tbody id="tb-as"></tbody></table>
     </div>
   </div>
@@ -989,6 +1109,22 @@ window.addEventListener('DOMContentLoaded',function(){
   document.getElementById('lbtn').addEventListener('click',doLogin);
   document.getElementById('lpass').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
 });
+
+function toggleSidebar(){
+  var sb=document.getElementById('sb-main');
+  var ov=document.getElementById('sb-overlay');
+  if(sb.classList.contains('open')){
+    sb.classList.remove('open');ov.classList.remove('on');
+  } else {
+    sb.classList.add('open');ov.classList.add('on');
+  }
+}
+function closeSidebar(){
+  var sb=document.getElementById('sb-main');
+  var ov=document.getElementById('sb-overlay');
+  sb.classList.remove('open');ov.classList.remove('on');
+}
+
 function doLogin(){
   var p=(document.getElementById('lpass').value||'').trim();
   if(!p)return;
@@ -1140,7 +1276,7 @@ function openModal(id){document.getElementById(id).classList.add('on');}
 function closeModal(id){document.getElementById(id).classList.remove('on');}
 
 // ── SYNC ENGINE ───────────────────────────────────────────────
-var _dirty={},_syncing=false,_online=false,_syncT=null;
+var _dirty={},_syncing=false,_online=false,_syncT=null,_onlineChecked=false;
 
 function markDirty(type,id){
   _dirty[type+':'+id]=true;
@@ -1155,7 +1291,8 @@ function _updateSyncStatus(){
   if(_syncing){el.textContent='⟳ Guardando...';el.style.color='var(--am)';}
   else if(n>0){el.textContent='● '+n+' sin guardar';el.style.color='var(--am)';}
   else if(_online){el.textContent='✓ Guardado';el.style.color='var(--ok)';}
-  else{el.textContent='— Sin conexión';el.style.color='var(--mu)';}
+  else if(_onlineChecked){el.textContent='— Sin conexión';el.style.color='var(--mu)';}
+  else{el.textContent='';} // todavía conectando, no mostrar nada
 }
 function _runSync(){
   if(_syncing)return Promise.resolve();
@@ -1213,8 +1350,8 @@ function _pullSheetSilent(){
       }
     }).catch(function(){}),
   ]).then(function(){
-    _online=true;_lsSave();_updateSyncStatus();renderAll();
-  }).catch(function(){_online=false;_updateSyncStatus();});
+    _online=true;_onlineChecked=true;_lsSave();_updateSyncStatus();renderAll();
+  }).catch(function(){_online=false;_onlineChecked=true;_updateSyncStatus();});
 }
 function _pullSheet(){
   var si=document.getElementById('pull-spinner');if(si)si.style.display='block';
@@ -1231,7 +1368,7 @@ function _pullSheet(){
       }
     }).catch(function(){}),
   ]).then(function(){
-    _online=true;
+    _online=true;_onlineChecked=true;
     _lsSave();
     _updateSyncStatus();
     renderAll();
@@ -1239,7 +1376,7 @@ function _pullSheet(){
     if(si)si.style.display='none';
   })
   .catch(function(){
-    _online=false;_updateSyncStatus();
+    _online=false;_onlineChecked=true;_updateSyncStatus();
     var si=document.getElementById('pull-spinner');
     if(si)si.style.display='none';
   });
@@ -1297,7 +1434,9 @@ function loadAll(){
   // 3. Mostrar datos cacheados de inmediato
   _applyGymIdentity();
   renderAll();
-  _updateSyncStatus();
+  // No llamar _updateSyncStatus aquí — va a mostrar "Sin conexión" hasta que llegue el pull
+  // Solo actualizar si hay dirty pendiente
+  if(Object.keys(_dirty).length) _updateSyncStatus();
   // 4. Sincronizar con Sheet en background (solo si no hay caché local)
   // Si hay caché, los datos ya están frescos — pull en background sin reemplazar
   if(!window._alumnos.length && !window._rutinas.length){
