@@ -1123,29 +1123,37 @@ function _runSync(){
   var chain=Promise.resolve();
   tasks.forEach(function(t){chain=chain.then(function(){return api(t.action,{payload:JSON.stringify(t.data)});});});
   return chain
-    .then(function(){_dirty={};_online=true;_syncing=false;_updateSyncStatus();})
-    .catch(function(){_syncing=false;_online=false;_updateSyncStatus();});
+    .then(function(results){
+      _dirty={};_online=true;_syncing=false;_updateSyncStatus();
+    })
+    .catch(function(e){
+      _syncing=false;_online=false;_updateSyncStatus();
+      // retry in 10s
+      setTimeout(function(){_runSync();},10000);
+    });
 }
 function _pullSheetSilent(){
-  // Pull que MERGEA: actualiza datos del sheet pero no elimina cambios locales pendientes
+  // Pull que MERGEA: nunca re-agrega IDs que fueron eliminados localmente
   Promise.all([
     api('getAlumnos').then(function(r){
       var d=r.data||r||[];
       if(!d.length) return;
-      // Merge: for each sheet record, update local if id matches; add if new
+      var localIds=new Set((window._alumnos||[]).map(function(a){return a.id;}));
       d.forEach(function(sa){
-        var li=( window._alumnos||[]).findIndex(function(a){return a.id===sa.id;});
+        if(!localIds.has(sa.id)) return; // fue eliminado localmente, ignorar
+        var li=(window._alumnos||[]).findIndex(function(a){return a.id===sa.id;});
         if(li>=0) window._alumnos[li]=sa;
-        else window._alumnos.push(sa);
+        // no push: solo actualiza existentes, no agrega nuevos en silent mode
       });
     }),
     api('getRutinas').then(function(r){
       var d=r.data||r||[];
       if(!d.length) return;
+      var localRIds=new Set((window._rutinas||[]).map(function(r){return r.id;}));
       d.forEach(function(sr){
+        if(!localRIds.has(sr.id)) return;
         var li=(window._rutinas||[]).findIndex(function(x){return x.id===sr.id;});
         if(li>=0) window._rutinas[li]=sr;
-        else window._rutinas.push(sr);
       });
     }),
     api('getConfig').then(function(r){
@@ -1160,6 +1168,7 @@ function _pullSheetSilent(){
   }).catch(function(){_online=false;_updateSyncStatus();});
 }
 function _pullSheet(){
+  var si=document.getElementById('pull-spinner');if(si)si.style.display='block';
   return Promise.all([
     api('getAlumnos').then(function(r){var d=r.data||r||[];if(d.length)window._alumnos=d;}),
     api('getRutinas').then(function(r){var d=r.data||r||[];if(d.length)window._rutinas=d;}),
@@ -1173,11 +1182,17 @@ function _pullSheet(){
     }).catch(function(){}),
   ]).then(function(){
     _online=true;
-    _lsSave(); // ← guardar en localStorage después de pull exitoso
+    _lsSave();
     _updateSyncStatus();
     renderAll();
+    var si=document.getElementById('pull-spinner');
+    if(si)si.style.display='none';
   })
-  .catch(function(){_online=false;_updateSyncStatus();});
+  .catch(function(){
+    _online=false;_updateSyncStatus();
+    var si=document.getElementById('pull-spinner');
+    if(si)si.style.display='none';
+  });
 }
 function _forceSyncAll(){
   loading(true);
@@ -1335,8 +1350,8 @@ function renderAlumnos(){
       +'<td><b style="color:var(--gd);font-family:monospace;font-size:12px">'+(a.num||'—')+'</b></td>'
       +'<td><div class="arow"><div class="av" style="background:'+color(a.nombre)+'">'+initials(a.nombre)+'</div><div><div class="aname">'+a.nombre+'</div><div class="asub">'+(a.email||'')+'</div></div></div></td>'
       +'<td>'+(a.tel||'—')+'</td>'
-      +'<td>'+(a.dias_semana?'<span class="badge bbl">'+a.dias_semana+'x</span>':'—')+'</td>'
-      +'<td><div style="display:flex;gap:4px;flex-wrap:wrap"><span class="badge bbl">'+rutNombre(a.rutina_id)+'</span>'+(a.dias_semana?'<span class="badge" style="background:var(--bll);color:var(--bl)">'+a.dias_semana+'x/sem</span>':'')+(a.tipo?'<span class="badge" style="background:var(--yl);color:#92610a">'+a.tipo+'</span>':'')+'</div></td>'
+      +'<td>'+(a.dias_semana?'<span class="badge" style="background:var(--navyl);color:var(--navy);font-size:11px">'+diasLabel(a.dias_semana)+'</span>':'—')+'</td>'
+      +'<td><div style="display:flex;gap:4px;flex-wrap:wrap"><span class="badge bbl">'+rutNombre(a.rutina_id)+'</span>'+(a.dias_semana?'<span class="badge" style="background:var(--navyl);color:var(--navy);font-size:11px">'+diasLabel(a.dias_semana)+'</span>':'')+(a.tipo?'<span class="badge" style="background:var(--yl);color:#92610a">'+a.tipo+'</span>':'')+'</div></td>'
       +'<td>'+fmt(a.ultimo_pago)+'</td>'
       +'<td>'+fmt(sumarDias(a.ultimo_pago||a.ingreso,30))+'</td>'
       +'<td><span class="badge '+e.cls+'">'+e.label+'</span></td>'
@@ -1358,6 +1373,7 @@ function openAlumno(id){
   var adEl=document.getElementById('a-dias-sem');if(adEl)adEl.value='';
   ['p-lor','p-cif','p-esc','p-gv','p-gvr','p-pp','p-hom','p-pel','m-cv','m-hip','m-dia','m-res','m-col','m-art','m-op','m-emb'].forEach(function(i){var e=document.getElementById(i);if(e)e.checked=false;});
   document.getElementById('a-ing').value=new Date().toISOString().split('T')[0];
+  document.getElementById('a-tipo').value='';
   actualizarCuotaDisplay();
   document.getElementById('imc-v').textContent='—';document.getElementById('imc-c').textContent='';
   document.getElementById('a-rut').innerHTML='<option value="">Sin asignar</option>'+(window._rutinas||[]).map(function(r){return'<option value="'+r.id+'">'+r.nombre+'</option>';}).join('');
@@ -1408,11 +1424,11 @@ function actualizarCuotaDisplay(){
   }
 }
 function saveAlumno(){
-  var nom=document.getElementById('a-nom').value.trim();if(!nom){alert('El nombre es obligatorio');return;}
+  var nom=document.getElementById('a-nom').value.trim();if(!nom){toast('El nombre es obligatorio');return;}
   var g=function(id){return document.getElementById(id);};
   var fisico={peso:+g('f-peso').value||null,altura:+g('f-alt').value||null,grasa:+g('f-gra').value||null,cintura:+g('f-cin').value||null,cadera:+g('f-cad').value||null,pecho:+g('f-pec').value||null,brazoD:+g('f-brd').value||null,brazoI:+g('f-bri').value||null,musloD:+g('f-mud').value||null,musloI:+g('f-mui').value||null,pantorrilla:+g('f-pan').value||null,deportes:g('f-dep').value,nivel:g('f-niv').value,postural:{lordosis:g('p-lor').checked,cifosis:g('p-cif').checked,escoliosis:g('p-esc').checked,genuValgo:g('p-gv').checked,genuVaro:g('p-gvr').checked,piePlano:g('p-pp').checked,hombros:g('p-hom').checked,pelvis:g('p-pel').checked}};
   var medico={detalle:g('m-det').value,medicacion:g('m-med').value,alergias:g('m-aler').value,emergNombre:g('m-en').value,emergTel:g('m-et').value,emergRel:g('m-er').value,cardio:g('m-cv').checked,hipertension:g('m-hip').checked,diabetes:g('m-dia').checked,respiratorio:g('m-res').checked,columna:g('m-col').checked,articular:g('m-art').checked,operacion:g('m-op').checked,embarazo:g('m-emb').checked};
-  var diasSem=document.getElementById('a-dias-sem');var data={nombre:nom,dni:g('a-dni').value,tel:g('a-tel').value,email:g('a-email').value,nacimiento:g('a-nac').value||null,sexo:g('a-sex').value,ocupacion:g('a-ocu').value,ingreso:g('a-ing').value,cuota:+g('a-cuo').value||0,dias_semana:diasSem&&+diasSem.value||null,rutina_id:g('a-rut').value||null,tipo:g('a-tipo').value||'',dias_semana:+g('a-dias-sem').value||null,objetivo:g('a-obj').value,obs:g('a-obs').value,fisico:fisico,medico:medico};
+  var data={nombre:nom,dni:g('a-dni').value,tel:g('a-tel').value,email:g('a-email').value,nacimiento:g('a-nac').value||null,sexo:g('a-sex').value,ocupacion:g('a-ocu').value,ingreso:g('a-ing').value,cuota:+g('a-cuo').value||0,dias_semana:+g('a-dias-sem').value||null,rutina_id:g('a-rut').value||null,tipo:g('a-tipo').value||'',objetivo:g('a-obj').value,obs:g('a-obs').value,fisico:fisico,medico:medico};
   if(editId){data.id=editId;var ex=(window._alumnos||[]).find(function(x){return x.id===editId;});if(ex){data.token=ex.token;data.ultimo_pago=ex.ultimo_pago;data.num=ex.num;}}
   if(!data.id){
     data.id=uid();data.token='tok'+uid().slice(0,8);data.activo=true;
