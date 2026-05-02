@@ -1284,7 +1284,7 @@ function doLogin(){
   }
   var lista=window._alumnos&&window._alumnos.length?window._alumnos:[];
   for(var i=0;i<lista.length;i++){
-    var num=lista[i].num||'';
+    var num=String(lista[i].num||'');
     var match = num===p || num===p.padStart(4,'0') || p===num.replace(/^0+/,'') || num.replace(/^0+/,'')===(p.replace(/^0+/,'')||'0');
     if(match){
       document.getElementById('login').style.display='none';
@@ -1339,12 +1339,18 @@ function loadAll(){
   if(hasCache){ _pullSheetSilent(); } else { _pullSheet(); }
 }
 function init(){
-  document.getElementById('tb-date').textContent=
-    new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
+  var fechaStr=new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
+  var tbDate=document.getElementById('tb-date');
+  if(tbDate)tbDate.textContent=fechaStr;
+  var tbDateAs=document.getElementById('tb-date-as');
+  if(tbDateAs)tbDateAs.textContent=fechaStr;
   bindEvents();loadAll();_applyGymIdentity();
   goPage('dashboard');
 }
 function bindEvents(){
+  // Helper: bind event only if element exists
+  function on(id, ev, fn){ var el=document.getElementById(id); if(el) el.addEventListener(ev,fn); }
+
   // Nav
   document.querySelectorAll('.ni').forEach(function(b){
     b.addEventListener('click',function(){goPage(this.dataset.page);});
@@ -1360,57 +1366,57 @@ function bindEvents(){
       group.querySelectorAll('.tab').forEach(function(x){x.classList.remove('on');});
       this.classList.add('on');
       var tid=this.dataset.tab;
-      this.closest('.mo-scroll,.modal,.mo-scroll').querySelectorAll('[data-panel]').forEach(function(p){p.style.display='none';});
+      var container=this.closest('.mo-scroll,.modal');
+      if(container)container.querySelectorAll('[data-panel]').forEach(function(p){p.style.display='none';});
       var panel=document.getElementById(tid);if(panel)panel.style.display='block';
     });
   });
   // Alumno
-  document.getElementById('btn-nuevo-al').addEventListener('click',function(){openAlumno(null);});
-  document.getElementById('btn-save-al').addEventListener('click',saveAlumno);
-  document.getElementById('q-al').addEventListener('input',renderAlumnos);
-  document.getElementById('fil-al').addEventListener('change',renderAlumnos);
-  document.getElementById('a-dias-sem').addEventListener('change',actualizarCuotaDisplay);
+  on('btn-nuevo-al','click',function(){openAlumno(null);});
+  on('btn-save-al','click',saveAlumno);
+  on('q-al','input',renderAlumnos);
+  on('fil-al','change',renderAlumnos);
+  on('f-est','change',renderAlumnos);
+  on('a-dias-sem','change',actualizarCuotaDisplay);
   // Rutina
-  document.getElementById('btn-nueva-rut').addEventListener('click',function(){openRutina();});
-  document.getElementById('btn-save-rut').addEventListener('click',saveRutina);
-  document.getElementById('r-ndias').addEventListener('change',rdrBuildDays);
+  on('btn-nueva-rut','click',function(){openRutina();});
+  on('btn-save-rut','click',saveRutina);
+  on('r-ndias','change',rdrBuildDays);
   // Pagos
-  document.getElementById('btn-nuevo-pg').addEventListener('click',function(){openPago(null);});
-  document.getElementById('btn-save-pg').addEventListener('click',savePago);
-  document.getElementById('q-pg').addEventListener('input',renderPagos);
-  document.getElementById('pg-al').addEventListener('change',pgFill);
+  on('btn-nuevo-pg','click',function(){openPago(null);});
+  on('btn-save-pg','click',savePago);
+  on('q-pg','input',renderPagos);
+  on('pg-al','change',pgFill);
   // Imprimir
-  document.getElementById('btn-pv-recibo').addEventListener('click',pvRecibo);
-  document.getElementById('btn-pv-rutina').addEventListener('click',pvRutina);
-  document.getElementById('btn-pv-ficha').addEventListener('click',pvFicha);
-  document.getElementById('btn-pv-planilla').addEventListener('click',pvPlanilla);
-  document.getElementById('pr-al').addEventListener('change',prFill);
-  document.getElementById('btn-print').addEventListener('click',function(){window.print();});
-  document.getElementById('btn-close-pov').addEventListener('click',function(){closeModal('pov');});
+  on('btn-pv-recibo','click',pvRecibo);
+  on('btn-pv-rutina','click',pvRutina);
+  on('btn-pv-ficha','click',pvFicha);
+  on('btn-pv-planilla','click',pvPlanilla);
+  on('pr-al','change',prFill);
+  on('btn-print','click',function(){window.print();});
+  on('btn-close-pov','click',function(){closeModal('pov');});
   // Config
-  document.getElementById('btn-save-config').addEventListener('click',function(){saveCuotaConfig();saveDiasCuotas();});
-  document.getElementById('btn-save-gym').addEventListener('click',saveGymConfig);
+  on('btn-save-config','click',function(){saveCuotaConfig();saveDiasCuotas();});
+  on('btn-save-gym','click',saveGymConfig);
   // Cuotas lista
-  document.getElementById('btn-export-cuotas').addEventListener('click',exportCuotasCSV);
+  on('btn-export-cuotas','click',exportCuotasCSV);
   // Asistencia
-  document.getElementById('btn-as-marcar').addEventListener('click',marcarAsistenciaManual);
-  document.getElementById('as-fil-al').addEventListener('change',renderAsistencia);
-  document.getElementById('as-fil-mes').addEventListener('change',renderAsistencia);
+  on('btn-as-marcar','click',marcarAsistenciaManual);
+  on('as-fil-al','change',renderAsistencia);
+  on('as-fil-mes','change',renderAsistencia);
   // Logout
-  document.getElementById('btnout').addEventListener('click',doLogout);
-  document.getElementById('btn-portal-logout').addEventListener('click',doLogout);
+  on('btnout','click',doLogout);
+  on('btn-portal-logout','click',doLogout);
   // Logo upload
-  var logoFile=document.getElementById('cfg-logofile');
-  if(logoFile)logoFile.addEventListener('change',function(){
+  on('cfg-logofile','change',function(){
     var f=this.files[0];if(!f)return;
     var r=new FileReader();r.onload=function(e){LOCAL_CONFIG.gym_logo=e.target.result;_applyGymIdentity();};
     r.readAsDataURL(f);
   });
   // Manual
-  var btnMan=document.getElementById('btn-manual');
-  if(btnMan)btnMan.addEventListener('click',function(){openModal('mo-manual');});
+  on('btn-manual','click',function(){openModal('mo-manual');});
   // POV close on backdrop
-  document.getElementById('pov').addEventListener('click',function(e){if(e.target===this)closeModal('pov');});
+  on('pov','click',function(e){if(e.target===this)closeModal('pov');});
   // Modals close on backdrop
   document.querySelectorAll('.mo').forEach(function(m){
     m.addEventListener('click',function(e){if(e.target===this)closeModal(this.id);});
