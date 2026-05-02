@@ -1239,6 +1239,7 @@ function doLogout(){
   document.getElementById('portal').classList.remove('show');
   document.getElementById('login').classList.add('show');
   document.getElementById('lpass').value='';
+  setTimeout(function(){document.getElementById('lpass').focus();},100);
   if(_syncT)clearTimeout(_syncT);
   window._alumnos=null;window._rutinas=null;window._pagos=null;window._asistencias=null;
   _online=false;_onlineChecked=false;_dirty={};_updateSyncStatus();
@@ -1371,6 +1372,7 @@ function bindEvents(){
 
 // ── DOMContentLoaded ─────────────────────────────────────────
 window.addEventListener('DOMContentLoaded',function(){
+  document.getElementById('lpass').focus();
   document.getElementById('lbtn').addEventListener('click',doLogin);
   document.getElementById('lpass').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
   // Pre-load localStorage so alumno login works before Sheet pull
