@@ -561,9 +561,9 @@ textarea{resize:vertical;min-height:60px}
     </div>
 <div class="page" id="page-alumnos">
       <div class="tb2">
-        <div style="display:flex;gap:8px;flex:1">
-          <input type="text" id="q-al" placeholder="Buscar por nombre, tel o N°..." style="flex:1;max-width:320px">
-          <select id="f-est">
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="q-al" placeholder="Buscar por nombre, tel o N°..." style="width:260px">
+          <select id="f-est" style="width:130px">
             <option value="">Todos</option>
             <option value="ok">Al día</option>
             <option value="warn">Por vencer</option>
@@ -1202,6 +1202,9 @@ function doLogout(){
   if(_syncT)clearTimeout(_syncT);
   window._alumnos=null;window._rutinas=null;window._pagos=null;window._asistencias=null;
   _online=false;_onlineChecked=false;_dirty={};_updateSyncStatus();
+  // Recargar cache para que el login de alumno funcione
+  _lsLoad();
+  if(!window._alumnos)window._alumnos=[];
 }
 
 // ── PAGE NAV ──────────────────────────────────────────────────
