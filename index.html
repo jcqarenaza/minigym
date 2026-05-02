@@ -609,7 +609,7 @@ textarea{resize:vertical;min-height:60px}
         <table>
           <thead><tr>
             <th>N°</th><th>Alumno</th><th>Teléfono</th><th>Días/sem</th><th>Rutina</th>
-            <th>Último pago</th><th>Vencimiento</th><th>Estado</th><th></th><th>Acciones</th>
+            <th>Último pago</th><th>Vencimiento</th><th>Estado</th><th>Acciones</th>
           </tr></thead>
           <tbody id="tb-al"></tbody>
         </table>
@@ -697,40 +697,11 @@ textarea{resize:vertical;min-height:60px}
 
 </div>
 <div class="page" id="page-imprimir">
-      <p style="color:var(--t2);margin-bottom:16px;font-size:13px">Generá documentos y usá Ctrl+P para imprimir.</p>
-      <div class="g2" style="gap:11px">
-        <div class="card cp" style="border-left:4px solid var(--green)">
-          <div class="ct">🧾 Recibo de pago</div>
-          <div class="fg"><label>Alumno</label>
-            <select id="pr-al"></select></div>
-          <div class="fr c2">
-            <div class="fg"><label>Monto ($)</label><input type="number" id="pr-mo"></div>
-            <div class="fg"><label>Fecha</label><input type="date" id="pr-fe"></div>
-          </div>
-          <div class="fr c2">
-            <div class="fg"><label>Período</label><input id="pr-pe"></div>
-            <div class="fg"><label>Método</label>
-              <select id="pr-met"><option>Efectivo</option><option>Transferencia</option><option>Débito</option><option>Crédito</option></select></div>
-          </div>
-          <button class="btn bp" id="btn-pv-recibo" style="margin-top:6px">Ver recibo</button>
-        </div>
-        <div class="card cp" style="border-left:4px solid var(--bl)">
-          <div class="ct">💪 Hoja de rutina</div>
-          <div class="fr c2">
-            <div class="fg"><label>Rutina</label><select id="pu-rut"></select></div>
-            <div class="fg"><label>Alumno (opcional)</label><select id="pu-al"></select></div>
-          </div>
-          <div class="fg"><label>Observaciones</label><input id="pu-obs" placeholder="Notas adicionales"></div>
-          <button class="btn bp" id="btn-pv-rutina" style="margin-top:6px">Ver hoja</button>
-        </div>
-        <div class="card cp" style="border-left:4px solid var(--am)">
-          <div class="ct">📋 Ficha de alta</div>
-          <div class="fg"><label>Alumno</label><select id="pa-al"></select></div>
-          <button class="btn bp" id="btn-pv-ficha" style="margin-top:6px">Ver ficha</button>
-        </div>
+      <div style="max-width:400px">
         <div class="card cp" style="border-left:4px solid var(--gd)">
           <div class="ct">📊 Planilla de cobros</div>
-          <div class="fg"><label>Período</label><input id="pp-mes" placeholder="Marzo 2026"></div>
+          <p style="font-size:12px;color:var(--mu);margin-bottom:10px">Listado completo de alumnos con estado de cuotas y vencimientos. Ctrl+P para imprimir.</p>
+          <div class="fg"><label>Período</label><input id="pp-mes" placeholder="Mayo 2026"></div>
           <button class="btn bp" id="btn-pv-planilla" style="margin-top:6px">Ver planilla</button>
         </div>
       </div>
@@ -934,6 +905,42 @@ textarea{resize:vertical;min-height:60px}
       </div>
     </div>
     <div id="pov-body"></div>
+  </div>
+</div>
+<div class="mo" id="mo-ficha-portal" style="z-index:9998">
+  <div class="modal modal-md">
+    <div class="mhd">
+      <div class="mtitle">📋 Completá tu ficha</div>
+    </div>
+    <div class="mo-scroll" style="padding-top:12px">
+      <p style="font-size:13px;color:var(--mu);margin-bottom:14px">Para que tu entrenador pueda personalizar tu plan, completá estos datos. Podés hacerlo ahora o más tarde.</p>
+      <div class="fr c2">
+        <div class="fg"><label>DNI</label><input id="pf-dni" placeholder="12345678"></div>
+        <div class="fg"><label>Teléfono</label><input id="pf-tel" placeholder="2302xxxxxx"></div>
+      </div>
+      <div class="fr c2">
+        <div class="fg"><label>Nacimiento</label><input type="date" id="pf-nac"></div>
+        <div class="fg"><label>Sexo</label><select id="pf-sex"><option value="">—</option><option>Masculino</option><option>Femenino</option><option>Otro</option></select></div>
+      </div>
+      <div class="fr c3">
+        <div class="fg"><label>Peso (kg)</label><input type="number" id="pf-peso" step="0.1" placeholder="70"></div>
+        <div class="fg"><label>Altura (cm)</label><input type="number" id="pf-alt" placeholder="170"></div>
+        <div class="fg"><label>% Grasa</label><input type="number" id="pf-gra" step="0.1" placeholder="18"></div>
+      </div>
+      <div class="fg"><label>Objetivo principal</label>
+        <select id="pf-obj"><option value="">—</option><option>Ganar masa muscular</option><option>Perder peso</option><option>Mantenimiento</option><option>Mejorar condicion fisica</option><option>Rendimiento deportivo</option><option>Rehabilitacion</option></select>
+      </div>
+      <div class="fg"><label>Antecedentes médicos relevantes (opcional)</label><textarea id="pf-med" rows="2" placeholder="Ej: hipertensión, operación de rodilla..."></textarea></div>
+      <div class="fr c3">
+        <div class="fg"><label>Contacto emergencia</label><input id="pf-en" placeholder="Nombre"></div>
+        <div class="fg"><label>Teléfono</label><input id="pf-et" placeholder="2302xxxxxx"></div>
+        <div class="fg"><label>Relación</label><input id="pf-er" placeholder="Mamá, pareja..."></div>
+      </div>
+    </div>
+    <div class="mft">
+      <button class="btn bg" onclick="_saltarFichaPortal()">Completar después</button>
+      <button class="btn bp" onclick="guardarFichaPortal()">Guardar ficha</button>
+    </div>
   </div>
 </div>
 <div id="portal">
@@ -1330,11 +1337,8 @@ function bindEvents(){
   on('q-pg','input',renderPagos);
   on('pg-al','change',pgFill);
   // Imprimir
-  on('btn-pv-recibo','click',pvRecibo);
-  on('btn-pv-rutina','click',pvRutina);
   on('btn-pv-ficha','click',pvFicha);
   on('btn-pv-planilla','click',pvPlanilla);
-  on('pr-al','change',prFill);
   on('btn-print','click',function(){window.print();});
   on('btn-close-pov','click',function(){closeModal('pov');});
   // Config
@@ -1464,6 +1468,13 @@ function openPortal(al){
   // Check notificaciones
   _checkNotifPortal(al);
   document.getElementById('portal').classList.add('show');
+  // Mostrar ficha si no fue completada (ni por admin ni por el alumno)
+  var fichaCompleta=al.dni||al.nacimiento||(al.fisico&&al.fisico.peso)||(al.medico&&al.medico.detalle);
+  var fichaKey='ficha_ok_'+al.id;
+  var fichaYaVista=localStorage.getItem(fichaKey);
+  if(!fichaCompleta&&!fichaYaVista){
+    setTimeout(function(){_mostrarFichaPortal(al);},400);
+  }
 }
 
 function guardarPesoEj(btn){
@@ -1494,6 +1505,38 @@ function guardarNota(){
 }
 
 function _checkNotifPortal(al){}
+
+function _mostrarFichaPortal(al){
+  openModal('mo-ficha-portal');
+}
+function _saltarFichaPortal(){
+  closeModal('mo-ficha-portal');
+  localStorage.setItem('ficha_ok_'+window._portalAl.id,'1');
+}
+function guardarFichaPortal(){
+  var al=window._portalAl;if(!al)return;
+  var g=function(id){return(document.getElementById(id)||{}).value||'';};
+  if(g('pf-dni'))al.dni=g('pf-dni');
+  if(g('pf-tel'))al.tel=g('pf-tel');
+  if(g('pf-nac'))al.nacimiento=g('pf-nac');
+  if(g('pf-sex'))al.sexo=g('pf-sex');
+  if(g('pf-obj'))al.objetivo=g('pf-obj');
+  if(!al.fisico)al.fisico={};
+  if(g('pf-peso'))al.fisico.peso=+g('pf-peso');
+  if(g('pf-alt'))al.fisico.altura=+g('pf-alt');
+  if(g('pf-gra'))al.fisico.grasa=+g('pf-gra');
+  if(!al.medico)al.medico={};
+  if(g('pf-med'))al.medico.detalle=g('pf-med');
+  if(g('pf-en'))al.medico.emergNombre=g('pf-en');
+  if(g('pf-et'))al.medico.emergTel=g('pf-et');
+  if(g('pf-er'))al.medico.emergRel=g('pf-er');
+  var idx=(window._alumnos||[]).findIndex(function(x){return x.id===al.id;});
+  if(idx>=0)window._alumnos[idx]=al;
+  markDirty('alumno',al.id);
+  localStorage.setItem('ficha_ok_'+al.id,'1');
+  closeModal('mo-ficha-portal');
+  toast('Ficha guardada ✓ Tu profe ya puede verla');
+}
 
 function renderDash(){
   var alumnos=window._alumnos||[];
@@ -1563,7 +1606,7 @@ function renderAlumnos(){
     return true;
   });
   var tb=document.getElementById('tb-al');
-  if(!list.length){tb.innerHTML='<tr><td colspan="10" style="text-align:center;padding:24px;color:var(--mu)">'+(alumnos.length?'Sin resultados':'Sin alumnos')+'</td></tr>';return;}
+  if(!list.length){tb.innerHTML='<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--mu)">'+(alumnos.length?'Sin resultados':'Sin alumnos')+'</td></tr>';return;}
   tb.innerHTML=list.map(function(a){
     var e=estadoAl(a);
     return'<tr>'
@@ -1571,15 +1614,19 @@ function renderAlumnos(){
       +'<td><div class="arow"><div class="av" style="background:'+color(a.nombre)+'">'+initials(a.nombre)+'</div><div><div class="aname">'+a.nombre+'</div><div class="asub">'+(a.email||'')+'</div></div></div></td>'
       +'<td>'+(a.tel||'—')+'</td>'
       +'<td>'+(a.dias_semana?'<span class="badge" style="background:var(--navyl);color:var(--navy);font-size:11px">'+diasLabel(a.dias_semana)+'</span>':'—')+'</td>'
-      +'<td><div style="display:flex;gap:4px;flex-wrap:wrap"><span class="badge bbl">'+rutNombre(a.rutina_id)+'</span>'+(a.dias_semana?'<span class="badge" style="background:var(--navyl);color:var(--navy);font-size:11px">'+diasLabel(a.dias_semana)+'</span>':'')+(a.tipo?'<span class="badge" style="background:var(--yl);color:#92610a">'+a.tipo+'</span>':'')+'</div></td>'
+      +'<td><span class="badge bbl">'+rutNombre(a.rutina_id)+'</span></td>'
       +'<td>'+fmt(a.ultimo_pago)+'</td>'
       +'<td>'+fmt(sumarDias(a.ultimo_pago||a.ingreso,30))+'</td>'
       +'<td><span class="badge '+e.cls+'">'+e.label+'</span></td>'
-      +'<td><button class="btn bb bsm" data-link="'+a.token+'">🔗</button></td>'
-      +'<td><div style="display:flex;gap:4px"><button class="btn bg bsm" data-edit="'+a.id+'">Editar</button><button class="btn br bsm" data-del="'+a.id+'">🗑</button></div></td></tr>';
+      +'<td><div style="display:flex;gap:4px;flex-wrap:wrap">'
+      +'<button class="btn bg bsm" data-edit="'+a.id+'">Editar</button>'
+      +'<button class="btn bb bsm" data-wa="'+a.id+'" title="Enviar recibo por WhatsApp">📲 WA</button>'
+      +'<button class="btn br bsm" data-del="'+a.id+'">🗑</button>'
+      +'</div></td></tr>';
   }).join('');
   tb.querySelectorAll('[data-edit]').forEach(function(b){b.addEventListener('click',function(){openAlumno(this.dataset.edit);});});
   tb.querySelectorAll('[data-del]').forEach(function(b){b.addEventListener('click',function(){delAlumno(this.dataset.del);});});
+  tb.querySelectorAll('[data-wa]').forEach(function(b){b.addEventListener('click',function(){enviarReciboWA(this.dataset.wa);});});
   tb.querySelectorAll('[data-link]').forEach(function(b){
     b.addEventListener('click',function(){
       navigator.clipboard&&navigator.clipboard.writeText(this.dataset.link).then(function(){toast('Token copiado ✓');}).catch(function(){toast('Token: '+b.dataset.link);});
@@ -2112,8 +2159,14 @@ function pvRutinaId(rid,aid,obs){
 }
 
 function pvFicha(){
-  var id=document.getElementById('pa-al').value;if(!id){alert('Seleccioná un alumno');return;}
-  var a=(window._alumnos||[]).find(function(x){return x.id===id;}),f=a.fisico||{},m=a.medico||{},p=f.postural||{};
+  var id=document.getElementById('pa-al').value;
+  if(!id){alert('Seleccioná un alumno');return;}
+  pvFichaId(id);
+}
+function pvFichaId(id){
+  var a=(window._alumnos||[]).find(function(x){return x.id===id;});
+  if(!a){alert('Alumno no encontrado');return;}
+  var f=a.fisico||{},m=a.medico||{},p=f.postural||{};
   var imc=f.peso&&f.altura?(f.peso/Math.pow(f.altura/100,2)).toFixed(1):'—';
   var PI=[['Hiperlordosis','lordosis'],['Hipercifosis','cifosis'],['Escoliosis','escoliosis'],['Genu valgo','genuValgo'],['Genu varo','genuVaro'],['Pie plano','piePlano'],['Hombros','hombros'],['Antev.','pelvis']];
   var MI=[['Cardiovascular','cardio'],['Hipertensión','hipertension'],['Diabetes','diabetes'],['Respiratorio','respiratorio'],['Columna','columna'],['Articular','articular'],['Operación','operacion'],['Embarazo','embarazo']];
@@ -2184,7 +2237,7 @@ function renderPagos(){
       +'<td>'+(ultimo?fmt(sumarDias(ultimo.fecha,30)):'—')+'</td>'
       +'<td><span class="badge '+e.cls+'">'+e.label+'</span></td>'
       +'<td><button class="btn bb bsm" onclick="openPago(\''+a.id+'\')">Registrar pago</button></td>'
-      +'<td><button class="btn bb bsm" onclick="pvReciboId(\''+a.id+'\')">🖨️</button></td>'
+      +'<td><button class="btn bb bsm" onclick="enviarReciboWA(\''+a.id+'\')" title="Enviar recibo por WhatsApp">📲 WA</button></td>'
       +'</tr>';
   }).join('');
 }
@@ -2251,6 +2304,38 @@ function fillPrint(){
   // Planilla - mes
   var pMes=document.getElementById('pp-mes');
   if(pMes)pMes.value=mes();
+}
+
+function enviarReciboWA(id){
+  var a=(window._alumnos||[]).find(function(x){return x.id===id;});
+  if(!a){toast('Alumno no encontrado');return;}
+  // Último pago
+  var pagos=(window._pagos||[]).filter(function(p){return p.alumno_id===id;}).sort(function(x,y){return(y.fecha||'').localeCompare(x.fecha||'');});
+  var ult=pagos[0]||{};
+  var cuota=getCuotaEfectiva(a);
+  var vence=sumarDias(ult.fecha||hoy(),30);
+  // Armar número con +549
+  var tel=(a.tel||'').replace(/\D/g,''); // solo dígitos
+  if(tel.startsWith('549'))tel=tel;
+  else if(tel.startsWith('54'))tel='9'+tel.slice(2);
+  else if(tel.startsWith('0'))tel='549'+tel.slice(1);
+  else if(tel.startsWith('9'))tel='54'+tel;
+  else tel='549'+tel;
+  // Texto del recibo
+  var gym=gymName();
+  var msg='🏋️ *'+gym+'*\n'
+    +'─────────────────\n'
+    +'*Recibo de pago*\n\n'
+    +'👤 Alumno: '+a.nombre+' (N°'+a.num+')\n'
+    +(ult.monto?'💰 Monto: $'+Number(ult.monto).toLocaleString('es-AR')+'\n':'💰 Cuota: $'+cuota.toLocaleString('es-AR')+'\n')
+    +(ult.fecha?'📅 Fecha: '+fmt(ult.fecha)+'\n':'')
+    +(ult.periodo?'📆 Período: '+ult.periodo+'\n':'')
+    +(ult.metodo?'💳 Método: '+ult.metodo+'\n':'')
+    +'✅ Vence: '+fmt(vence)+'\n'
+    +'─────────────────\n'
+    +'¡Gracias por tu pago! 💪';
+  var url='https://wa.me/'+tel+'?text='+encodeURIComponent(msg);
+  window.open(url,'_blank');
 }
 
 function pvRecibo(){
