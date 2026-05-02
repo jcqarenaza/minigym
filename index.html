@@ -67,16 +67,23 @@ html,body{height:100%;font-family:system-ui,-apple-system,sans-serif;font-size:1
 
 /* PAGES */
 .page{display:none}.page.on{display:block}
+#page-dashboard{padding:16px;background:var(--bg)}
 
 /* STATS GRID */
-.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:16px}
-.sc{background:var(--white);border:1px solid var(--bor);border-radius:11px;padding:13px 15px;display:flex;align-items:center;gap:11px;box-shadow:var(--sh)}
-.si{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
-.sv{font-size:22px;font-weight:800;line-height:1}
-.sl{font-size:11px;color:var(--mu);margin-top:1px}
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.sc{background:var(--white);border:1px solid var(--bor);border-radius:12px;padding:14px 16px;position:relative;overflow:hidden;cursor:default}
+.sc-icon{font-size:16px;margin-bottom:8px}
+.sv{font-size:28px;font-weight:700;line-height:1;color:var(--tx)}
+.sl{font-size:12px;color:var(--mu);margin-top:4px}
+.sc-bar{position:absolute;bottom:0;left:0;height:3px;border-radius:0}
 
 /* CARD */
-.card{background:var(--white);border:1px solid var(--bor);border-radius:11px;box-shadow:var(--sh)}
+.card{background:var(--white);border:1px solid var(--bor);border-radius:12px;overflow:hidden}
+.card-hd{padding:11px 16px;border-bottom:1px solid var(--bor);display:flex;align-items:center;justify-content:space-between}
+.card-hd-title{font-size:13px;font-weight:700;color:var(--tx)}
+.card-badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600}
+.card-badge-red{background:var(--rl);color:#b91c1c}
+.card-badge-blue{background:var(--bll);color:#1d4ed8}
 .cp{padding:15px 17px}
 .ct{font-size:13px;font-weight:700;margin-bottom:11px}
 
@@ -542,19 +549,45 @@ textarea{resize:vertical;min-height:60px}
       <div class="tb-date" id="tb-date"></div>
     </div>
     <div class="page on" id="page-dashboard">
-      <div class="sc-grid">
-        <div class="sc"><div class="sv" id="s1">—</div><div class="sl">Total alumnos</div></div>
-        <div class="sc"><div class="sv" id="s2">—</div><div class="sl">Al día</div></div>
-        <div class="sc" style="border-color:var(--red)"><div class="sv" id="s3">—</div><div class="sl">Vencidos</div></div>
-        <div class="sc"><div class="sv" id="s4">—</div><div class="sl">Rutinas</div></div>
+      <div class="sg">
+        <div class="sc">
+          <div class="sc-icon">👥</div>
+          <div class="sv" id="s1">—</div>
+          <div class="sl">Total alumnos</div>
+          <div class="sc-bar" id="sb1" style="background:#378ADD;width:100%"></div>
+        </div>
+        <div class="sc">
+          <div class="sc-icon">✅</div>
+          <div class="sv" id="s2">—</div>
+          <div class="sl">Al día</div>
+          <div class="sc-bar" id="sb2" style="background:#639922"></div>
+        </div>
+        <div class="sc">
+          <div class="sc-icon">⚠️</div>
+          <div class="sv" id="s3">—</div>
+          <div class="sl">Vencidos</div>
+          <div class="sc-bar" id="sb3" style="background:#E24B4A"></div>
+        </div>
+        <div class="sc">
+          <div class="sc-icon">💪</div>
+          <div class="sv" id="s4">—</div>
+          <div class="sl">Rutinas activas</div>
+          <div class="sc-bar" id="sb4" style="background:#EF9F27;width:100%"></div>
+        </div>
       </div>
       <div class="g2">
         <div class="card">
-          <div class="ct">⚠️ Cobros urgentes</div>
+          <div class="card-hd">
+            <div class="card-hd-title">Cobros urgentes</div>
+            <span class="card-badge card-badge-red" id="badge-cobros"></span>
+          </div>
           <div id="d-cobros"></div>
         </div>
         <div class="card">
-          <div class="ct">🆕 Últimos ingresos</div>
+          <div class="card-hd">
+            <div class="card-hd-title">Últimos ingresos</div>
+            <span class="card-badge card-badge-blue">este mes</span>
+          </div>
           <div id="d-ingresos"></div>
         </div>
       </div>
@@ -1464,24 +1497,58 @@ function _checkNotifPortal(al){}
 
 function renderDash(){
   var alumnos=window._alumnos||[];
-  document.getElementById('s1').textContent=alumnos.length;
-  document.getElementById('s2').textContent=alumnos.filter(function(a){return estadoAl(a).dias>5;}).length;
-  document.getElementById('s3').textContent=alumnos.filter(function(a){return estadoAl(a).dias<0;}).length;
-  document.getElementById('s4').textContent=(window._rutinas||[]).length;
+  var total=alumnos.length;
+  var alDia=alumnos.filter(function(a){return estadoAl(a).dias>5;}).length;
+  var venc=alumnos.filter(function(a){return estadoAl(a).dias<0;}).length;
+  var ruts=(window._rutinas||[]).length;
+  document.getElementById('s1').textContent=total||'—';
+  document.getElementById('s2').textContent=alDia||'—';
+  document.getElementById('s3').textContent=venc||'—';
+  document.getElementById('s4').textContent=ruts||'—';
+  // Barras proporcionales
+  if(total>0){
+    var sb2=document.getElementById('sb2');if(sb2)sb2.style.width=Math.round(alDia/total*100)+'%';
+    var sb3=document.getElementById('sb3');if(sb3)sb3.style.width=Math.round(venc/total*100)+'%';
+  }
+  // Badge cobros urgentes
   var urg=alumnos.filter(function(a){return estadoAl(a).dias<5;}).sort(function(a,b){return estadoAl(a).dias-estadoAl(b).dias;});
+  var badgeCob=document.getElementById('badge-cobros');
+  if(badgeCob)badgeCob.textContent=urg.length?urg.length+' pendientes':'';
+  // Filas cobros
   var dc=document.getElementById('d-cobros');
-  if(!urg.length){dc.innerHTML='<div style="text-align:center;padding:14px;color:var(--mu)">✅ Todos al día</div>';}
-  else dc.innerHTML=urg.slice(0,5).map(function(a){
-    var e=estadoAl(a);
-    var txt=e.dias<0?'<span style="color:var(--red);font-weight:700">'+Math.abs(e.dias)+'d vencida</span>':'<span style="color:var(--am);font-weight:700">vence en '+e.dias+'d</span>';
-    return'<div class="drow"><div class="arow"><div class="av" style="background:'+color(a.nombre)+'">'+initials(a.nombre)+'</div><div><div class="aname">'+a.nombre+'</div><div class="asub">'+fmtM(getCuotaEfectiva(a))+'</div></div></div>'
-      +'<div style="display:flex;align-items:center;gap:6px">'+txt+'<button class="btn bp bsm" data-cobrar="'+a.id+'">Cobrar</button></div></div>';
-  }).join('');
-  dc.querySelectorAll('[data-cobrar]').forEach(function(b){b.addEventListener('click',function(){openPago(this.dataset.cobrar);});});
+  if(!urg.length){
+    dc.innerHTML='<div style="text-align:center;padding:20px 16px;color:var(--ok);font-size:13px;font-weight:600">✅ Todos al día</div>';
+  } else {
+    dc.innerHTML=urg.slice(0,5).map(function(a){
+      var e=estadoAl(a);
+      var tag=e.dias<0
+        ?'<span style="font-size:11px;padding:2px 7px;border-radius:6px;font-weight:600;background:var(--rl);color:#b91c1c">'+Math.abs(e.dias)+'d vencida</span>'
+        :'<span style="font-size:11px;padding:2px 7px;border-radius:6px;font-weight:600;background:var(--al);color:#92400e">vence en '+e.dias+'d</span>';
+      return'<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--bor)">'
+        +'<div style="display:flex;align-items:center;gap:8px">'
+        +'<div class="av" style="width:28px;height:28px;font-size:10px;background:'+color(a.nombre)+'">'+initials(a.nombre)+'</div>'
+        +'<div><div style="font-size:13px;font-weight:600">'+a.nombre+'</div><div style="font-size:11px;color:var(--mu)">'+fmtM(getCuotaEfectiva(a))+'</div></div>'
+        +'</div>'
+        +'<div style="display:flex;align-items:center;gap:6px">'+tag
+        +'<button class="btn bp bsm" data-cobrar="'+a.id+'">Cobrar</button></div>'
+        +'</div>';
+    }).join('');
+    dc.querySelectorAll('[data-cobrar]').forEach(function(b){b.addEventListener('click',function(){openPago(this.dataset.cobrar);});});
+  }
+  // Filas ingresos
   var rec=[].concat(alumnos).sort(function(a,b){return new Date(b.ingreso)-new Date(a.ingreso);}).slice(0,5);
-  document.getElementById('d-ingresos').innerHTML=rec.map(function(a){
-    return'<div class="drow"><div class="arow"><div class="av" style="background:'+color(a.nombre)+'">'+initials(a.nombre)+'</div><div><div class="aname">'+a.nombre+'</div><div class="asub">'+fmt(a.ingreso)+'</div></div></div><span class="badge '+estadoAl(a).cls+'">'+estadoAl(a).label+'</span></div>';
-  }).join('');
+  document.getElementById('d-ingresos').innerHTML=rec.length
+    ?rec.map(function(a){
+      var e=estadoAl(a);
+      return'<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--bor)">'
+        +'<div style="display:flex;align-items:center;gap:8px">'
+        +'<div class="av" style="width:28px;height:28px;font-size:10px;background:'+color(a.nombre)+'">'+initials(a.nombre)+'</div>'
+        +'<div><div style="font-size:13px;font-weight:600">'+a.nombre+'</div><div style="font-size:11px;color:var(--mu)">ingresó '+fmt(a.ingreso)+'</div></div>'
+        +'</div>'
+        +'<span class="badge '+e.cls+'">'+e.label+'</span>'
+        +'</div>';
+    }).join('')
+    :'<div style="text-align:center;padding:20px 16px;color:var(--mu);font-size:13px">Sin alumnos</div>';
 }
 
 function renderAlumnos(){
