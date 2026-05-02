@@ -26,7 +26,8 @@
 html,body{height:100%;font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:var(--bg);color:var(--tx)}
 
 /* LOGIN */
-#login{position:fixed;inset:0;background:var(--navy);display:flex;align-items:center;justify-content:center;z-index:999}
+#login{position:fixed;inset:0;background:var(--navy);display:none;align-items:center;justify-content:center;z-index:999}
+#login.show{display:flex}
 .lbox{background:#fff;border-radius:18px;padding:40px 36px;width:320px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4)}
 .lbox img{height:32px;margin-bottom:16px}
 .lbox h2{font-size:19px;font-weight:800;margin-bottom:3px}
@@ -136,8 +137,11 @@ textarea{resize:vertical;min-height:60px}
 /* MODAL */
 .mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:flex-start;justify-content:center;overflow-y:auto;padding:24px 16px;backdrop-filter:blur(2px)}
 .mo.on{display:flex}
-.modal{background:var(--white);border-radius:14px;padding:20px 22px;width:100%;max-width:680px;margin:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:pop .18s ease}
-.modal-md{max-width:500px}
+.modal{background:var(--white);border-radius:14px;width:100%;max-width:680px;margin:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:pop .18s ease;display:flex;flex-direction:column;max-height:90vh}
+.mo-scroll{overflow-y:auto;padding:0 22px;flex:1}
+.mhd{padding:20px 22px 0;flex-shrink:0}
+.modal>.tabs{padding:12px 22px 0;flex-shrink:0}
+.mft{display:flex;gap:7px;justify-content:flex-end;padding:12px 22px 20px;border-top:1px solid var(--bor);flex-shrink:0}
 @keyframes pop{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .mhd{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
 .mtitle{font-size:15px;font-weight:800}
@@ -496,7 +500,7 @@ textarea{resize:vertical;min-height:60px}
 <div id="toast"></div>
 <div id="pull-spinner" style="display:none;position:fixed;bottom:20px;right:20px;z-index:9999;background:var(--navy);color:#fff;padding:9px 16px;border-radius:8px;font-size:12px;box-shadow:var(--sh2)">⟳ Sincronizando...</div>
 
-<div id="login">
+<div id="login" class="show">
   <div class="lbox">
     <img class="sb-logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyODAgODAiPjxyZWN0IHg9IjIiIHk9IjI0IiB3aWR0aD0iOSIgaGVpZ2h0PSIzMiIgcng9IjMiIGZpbGw9IiM5Y2EzYWYiLz48cmVjdCB4PSIxMyIgeT0iMTYiIHdpZHRoPSI3IiBoZWlnaHQ9IjQ4IiByeD0iMyIgZmlsbD0iIzZiNzI4MCIvPjxyZWN0IHg9IjIyIiB5PSIxMCIgd2lkdGg9IjkiIGhlaWdodD0iNjAiIHJ4PSIzIiBmaWxsPSIjOWNhM2FmIi8+PHJlY3QgeD0iMzEiIHk9IjM0IiB3aWR0aD0iNzgiIGhlaWdodD0iMTIiIHJ4PSI2IiBmaWxsPSIjOWNhM2FmIi8+PHJlY3QgeD0iNTEiIHk9IjM3IiB3aWR0aD0iMyIgaGVpZ2h0PSI2IiByeD0iMSIgZmlsbD0iIzZiNzI4MCIgb3BhY2l0eT0iLjUiLz48cmVjdCB4PSI2MiIgeT0iMzciIHdpZHRoPSIzIiBoZWlnaHQ9IjYiIHJ4PSIxIiBmaWxsPSIjNmI3MjgwIiBvcGFjaXR5PSIuNSIvPjxyZWN0IHg9IjczIiB5PSIzNyIgd2lkdGg9IjMiIGhlaWdodD0iNiIgcng9IjEiIGZpbGw9IiM2YjcyODAiIG9wYWNpdHk9Ii41Ii8+PHJlY3QgeD0iODQiIHk9IjM3IiB3aWR0aD0iMyIgaGVpZ2h0PSI2IiByeD0iMSIgZmlsbD0iIzZiNzI4MCIgb3BhY2l0eT0iLjUiLz48cmVjdCB4PSI5NSIgeT0iMzciIHdpZHRoPSIzIiBoZWlnaHQ9IjYiIHJ4PSIxIiBmaWxsPSIjNmI3MjgwIiBvcGFjaXR5PSIuNSIvPjxyZWN0IHg9IjEwOSIgeT0iMTAiIHdpZHRoPSI5IiBoZWlnaHQ9IjYwIiByeD0iMyIgZmlsbD0iIzljYTNhZiIvPjxyZWN0IHg9IjEyMCIgeT0iMTYiIHdpZHRoPSI3IiBoZWlnaHQ9IjQ4IiByeD0iMyIgZmlsbD0iIzZiNzI4MCIvPjxyZWN0IHg9IjEyOSIgeT0iMjQiIHdpZHRoPSI5IiBoZWlnaHQ9IjMyIiByeD0iMyIgZmlsbD0iIzljYTNhZiIvPjx0ZXh0IHg9IjE1MiIgeT0iNjAiIGZvbnQtZmFtaWx5PSJBcmlhbCBCbGFjayxBcmlhbCxzYW5zLXNlcmlmIiBmb250LXdlaWdodD0iOTAwIiBmb250LXNpemU9IjUyIiBmaWxsPSIjMWEyNjNhIiBsZXR0ZXItc3BhY2luZz0iLTIiPk1HPC90ZXh0Pjwvc3ZnPg==" alt="logo" style="height:48px;margin-bottom:8px">
     <div class="lgym" id="login-gymname">Mi Gimnasio</div>
@@ -919,6 +923,21 @@ textarea{resize:vertical;min-height:60px}
       <div class="stat-box"><div class="sv" id="pt-desde">—</div><div class="sl">Meses en el gym</div></div>
     </div>
     <div class="pcard">
+      <div class="pcard-hd"><span>⚖️</span><span>Mis medidas</span></div>
+      <div class="pcard-body">
+        <p style="font-size:12px;color:var(--mu);margin-bottom:10px">Registrá tu peso y medidas. Tu profe también puede actualizarlas.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+          <div class="fg"><label>Peso (kg)</label><input type="number" id="pt-peso" placeholder="Ej: 75" step="0.1" oninput="_actualizarIMCPortal()"></div>
+          <div class="fg"><label>Altura (cm)</label><input type="number" id="pt-altura" placeholder="Ej: 175" oninput="_actualizarIMCPortal()"></div>
+          <div class="fg"><label>% Grasa corporal</label><input type="number" id="pt-grasa" placeholder="Ej: 18" step="0.1"></div>
+          <div class="fg"><label>Cintura (cm)</label><input type="number" id="pt-cintura" placeholder="Ej: 85"></div>
+        </div>
+        <div id="pt-imc-display" style="background:var(--s2);border:1px solid var(--bor);border-radius:7px;padding:8px 12px;font-size:13px;margin-bottom:10px;display:none"></div>
+        <button class="btn bp" id="btn-guardar-medidas" style="width:100%;justify-content:center">Guardar medidas</button>
+        <div id="pt-historial-peso" style="margin-top:12px"></div>
+      </div>
+    </div>
+    <div class="pcard">
       <div class="pcard-hd"><span>💪</span><span id="pt-rut-title">Mi rutina</span></div>
       <div class="pcard-body" id="pt-rut-body"></div>
     </div>
@@ -1174,7 +1193,7 @@ function doLogin(){
   var p=(document.getElementById('lpass').value||'').trim();
   if(!p)return;
   if(p===PASS){
-    document.getElementById('login').style.display='none';
+    document.getElementById('login').classList.remove('show');
     document.getElementById('app').classList.add('show');
     init();return;
   }
@@ -1183,7 +1202,7 @@ function doLogin(){
     var num=String(lista[i].num||'');
     var match = num===p || num===p.padStart(4,'0') || p===num.replace(/^0+/,'') || num.replace(/^0+/,'')===(p.replace(/^0+/,'')||'0');
     if(match){
-      document.getElementById('login').style.display='none';
+      document.getElementById('login').classList.remove('show');
       openPortal(lista[i]);return;
     }
   }
@@ -1194,7 +1213,7 @@ function doLogin(){
 function doLogout(){
   document.getElementById('app').classList.remove('show');
   document.getElementById('portal').classList.remove('show');
-  document.getElementById('login').style.display='flex';
+  document.getElementById('login').classList.add('show');
   document.getElementById('lpass').value='';
   if(_syncT)clearTimeout(_syncT);
   window._alumnos=null;window._rutinas=null;window._pagos=null;window._asistencias=null;
@@ -1405,9 +1424,78 @@ function openPortal(al){
   // Nota previa
   var notas=JSON.parse(localStorage.getItem('notas_'+al.id)||'[]');
   document.getElementById('pt-notas-previas').innerHTML=notas.slice(-3).reverse().map(function(n){return'<div style="font-size:11px;background:var(--gl);border-radius:6px;padding:6px 9px;margin-bottom:5px"><span style="color:var(--mu)">'+fmt(n.fecha)+'</span><br>'+n.texto+'</div>';}).join('');
+  // Medidas corporales
+  _cargarMedidas(al);
+  var btnMed=document.getElementById('btn-guardar-medidas');
+  if(btnMed){btnMed.onclick=function(){guardarMedidas();};}
   // Check notificaciones
   _checkNotifPortal(al);
   document.getElementById('portal').classList.add('show');
+}
+
+function _cargarMedidas(al){
+  var f=al.fisico||{};
+  var el=function(id){return document.getElementById(id);};
+  if(el('pt-peso'))el('pt-peso').value=f.peso||'';
+  if(el('pt-altura'))el('pt-altura').value=f.altura||'';
+  if(el('pt-grasa'))el('pt-grasa').value=f.grasa||'';
+  if(el('pt-cintura'))el('pt-cintura').value=f.cintura||'';
+  _actualizarIMCPortal();
+  // Historial de peso desde localStorage
+  var hist=JSON.parse(localStorage.getItem('peso_'+al.id)||'[]');
+  var histEl=document.getElementById('pt-historial-peso');
+  if(histEl&&hist.length){
+    histEl.innerHTML='<div style="font-size:11px;color:var(--mu);margin-bottom:5px;font-weight:700">Últimos registros</div>'
+      +hist.slice(-5).reverse().map(function(h){
+        return'<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--bor);font-size:12px">'
+          +'<span style="color:var(--mu)">'+fmt(h.fecha)+'</span>'
+          +'<span style="font-weight:700;color:var(--gd)">'+h.peso+' kg</span>'
+          +(h.grasa?'<span style="color:var(--mu)">'+h.grasa+'% grasa</span>':'<span></span>')
+          +'</div>';
+      }).join('');
+  }
+}
+
+function _actualizarIMCPortal(){
+  var p=+( document.getElementById('pt-peso')||{}).value;
+  var h=+( document.getElementById('pt-altura')||{}).value;
+  var el=document.getElementById('pt-imc-display');
+  if(!el)return;
+  if(!p||!h){el.style.display='none';return;}
+  var imc=p/Math.pow(h/100,2);
+  var cat,col;
+  if(imc<18.5){cat='Bajo peso';col='var(--bl)';}
+  else if(imc<25){cat='Normal ✓';col='var(--ok)';}
+  else if(imc<30){cat='Sobrepeso';col='var(--am)';}
+  else{cat='Obesidad';col='var(--red)';}
+  el.style.display='block';
+  el.innerHTML='IMC: <b style="color:'+col+'">'+imc.toFixed(1)+'</b> — '+cat;
+}
+
+function guardarMedidas(){
+  var al=window._portalAl;if(!al)return;
+  var g=function(id){return document.getElementById(id);};
+  var peso=+g('pt-peso').value||null;
+  var altura=+g('pt-altura').value||null;
+  var grasa=+g('pt-grasa').value||null;
+  var cintura=+g('pt-cintura').value||null;
+  if(!peso){toast('Ingresá al menos el peso');return;}
+  // Guardar historial local
+  var hist=JSON.parse(localStorage.getItem('peso_'+al.id)||'[]');
+  hist.push({fecha:new Date().toISOString().split('T')[0],peso:peso,grasa:grasa});
+  localStorage.setItem('peso_'+al.id,JSON.stringify(hist.slice(-50)));
+  // Actualizar el objeto del alumno y sincronizar
+  if(!al.fisico)al.fisico={};
+  al.fisico.peso=peso;
+  if(altura)al.fisico.altura=altura;
+  if(grasa)al.fisico.grasa=grasa;
+  if(cintura)al.fisico.cintura=cintura;
+  var idx=(window._alumnos||[]).findIndex(function(x){return x.id===al.id;});
+  if(idx>=0)window._alumnos[idx]=al;
+  markDirty('alumno',al.id);
+  _actualizarIMCPortal();
+  _cargarMedidas(al);
+  toast('Medidas guardadas ✓');
 }
 
 function guardarNota(){
