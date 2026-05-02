@@ -538,6 +538,10 @@ textarea{resize:vertical;min-height:60px}
     </div>
   </div>
   <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0">
+    <div class="topbar">
+      <div class="tb-title" id="tb-title">Dashboard</div>
+      <div class="tb-date" id="tb-date"></div>
+    </div>
     <div class="page on" id="page-dashboard">
       <div class="sc-grid">
         <div class="sc"><div class="sv" id="s1">—</div><div class="sl">Total alumnos</div></div>
@@ -659,107 +663,6 @@ textarea{resize:vertical;min-height:60px}
     </div>
   </div>
 
-  <!-- MODAL ALUMNO -->
-<div class="mo" id="mo-al">
-  <div class="modal">
-    <div class="mhd"><div class="mtitle" id="mo-al-title">Alumno</div><button class="xb mo-close" data-mo="mo-al">✕</button></div>
-    <div class="tabs">
-      <button class="tab on" data-tab="td">Datos</button>
-      <button class="tab" data-tab="tf">Físico</button>
-      <button class="tab" data-tab="tm">Antecedentes</button>
-    </div>
-    <div class="mo-scroll">
-    <!-- TAB DATOS -->
-    <div id="td" style="display:block">
-      <div class="fr c2"><div class="fg"><label>Nombre *</label><input id="a-nom"></div><div class="fg"><label>DNI</label><input id="a-dni"></div></div>
-      <div class="fr c2"><div class="fg"><label>Teléfono</label><input id="a-tel"></div><div class="fg"><label>Email</label><input id="a-email" type="email"></div></div>
-      <div class="fr c3"><div class="fg"><label>Nacimiento</label><input type="date" id="a-nac"></div><div class="fg"><label>Sexo</label><select id="a-sex"><option value="">—</option><option>Masculino</option><option>Femenino</option><option>Otro</option></select></div><div class="fg"><label>Ocupación</label><input id="a-ocu"></div></div>
-      <div class="fr c3"><div class="fg"><label>Ingreso</label><input type="date" id="a-ing"></div><div class="fg"><label>Cuota aplicada</label><div id="a-cuo-display" style="padding:7px 10px;background:var(--s2);border:1.5px solid var(--bor);border-radius:7px;font-weight:700;color:var(--gd);font-size:13px">— seleccioná días/sem</div><input type="hidden" id="a-cuo" value="0"></div><div class="fg"><label>Rutina</label><select id="a-rut"></select></div></div>
-      <div class="fr c2">
-        <div class="fg"><label>Días por semana</label>
-          <select id="a-dias-sem" onchange="actualizarCuotaDisplay()">
-            <option value="">— sin asignar</option>
-            <option value="2">2 veces por semana</option>
-            <option value="3">3 veces por semana</option>
-            <option value="4">4 veces por semana</option>
-            <option value="5">Pase libre (Lun a Vie)</option>
-          </select>
-        </div>
-        <div class="fg"><label>Tipo de entrenamiento</label>
-          <select id="a-tipo">
-            <option value="">— sin asignar</option>
-            <option value="Musculación">Musculación</option>
-            <option value="Funcional">Funcional</option>
-            <option value="Cardio">Cardio</option>
-            <option value="Mixto">Mixto</option>
-            <option value="Rehabilitación">Rehabilitación</option>
-          </select>
-        </div>
-        <div class="fg"><label>Objetivo</label><select id="a-obj"><option value="">—</option><option>Ganar masa muscular</option><option>Perder peso</option><option>Mantenimiento</option><option>Mejorar condicion fisica</option><option>Rendimiento deportivo</option><option>Rehabilitacion</option></select></div>
-        </div>
-        
-      </div>
-      <div class="fg"><label>Observaciones</label><textarea id="a-obs" rows="2"></textarea></div>
-    </div>
-    <!-- TAB FISICO -->
-    <div id="tf" style="display:none">
-      <div class="fr c3">
-        <div class="fg"><label>Peso (kg)</label><input type="number" id="f-peso" step="0.1"></div>
-        <div class="fg"><label>Altura (cm)</label><input type="number" id="f-alt"></div>
-        <div class="fg"><label>IMC</label><span id="imc-v" style="font-weight:800;color:var(--gd)">—</span> <span id="imc-c" style="font-size:11px"></span></div>
-      </div>
-      <div class="fr c3">
-        <div class="fg"><label>% Grasa</label><input type="number" id="f-gra" step="0.1"></div>
-        <div class="fg"><label>Cintura (cm)</label><input type="number" id="f-cin"></div>
-        <div class="fg"><label>Cadera (cm)</label><input type="number" id="f-cad"></div>
-      </div>
-      <div class="fr c3">
-        <div class="fg"><label>Pecho (cm)</label><input type="number" id="f-pec"></div>
-        <div class="fg"><label>Brazo D (cm)</label><input type="number" id="f-brd"></div>
-        <div class="fg"><label>Brazo I (cm)</label><input type="number" id="f-bri"></div>
-      </div>
-      <div class="fr c3">
-        <div class="fg"><label>Muslo D (cm)</label><input type="number" id="f-mud"></div>
-        <div class="fg"><label>Muslo I (cm)</label><input type="number" id="f-mui"></div>
-        <div class="fg"><label>Pantorrilla (cm)</label><input type="number" id="f-pan"></div>
-      </div>
-      <div class="fr c2">
-        <div class="fg"><label>Nivel de actividad</label><select id="f-niv"><option value="">—</option><option>Sedentario</option><option>Ligeramente activo</option><option>Moderadamente activo</option><option>Muy activo</option></select></div>
-        <div class="fg"><label>Deportes / Actividades</label><input id="f-dep"></div>
-      </div>
-      <div class="ct" style="margin-top:12px;margin-bottom:8px">Evaluación postural</div>
-      <div class="chk-grid">
-        <label><input type="checkbox" id="p-lor"> Hiperlordosis</label>
-        <label><input type="checkbox" id="p-cif"> Hipercifosis</label>
-        <label><input type="checkbox" id="p-esc"> Escoliosis</label>
-        <label><input type="checkbox" id="p-gv"> Genu valgo</label>
-        <label><input type="checkbox" id="p-gvr"> Genu varo</label>
-        <label><input type="checkbox" id="p-pp"> Pie plano</label>
-        <label><input type="checkbox" id="p-hom"> Alt. hombros</label>
-        <label><input type="checkbox" id="p-pel"> Anteversión pélvica</label>
-      </div>
-    </div>
-    <!-- TAB MEDICO -->
-    <div id="tm" style="display:none">
-      <div class="ct" style="margin-bottom:8px">Antecedentes médicos</div>
-      <div class="chk-grid">
-        <label><input type="checkbox" id="m-cv"> Cardiovascular</label>
-        <label><input type="checkbox" id="m-hip"> Hipertensión</label>
-        <label><input type="checkbox" id="m-dia"> Diabetes</label>
-        <label><input type="checkbox" id="m-res"> Respiratorio</label>
-        <label><input type="checkbox" id="m-col"> Columna</label>
-        <label><input type="checkbox" id="m-art"> Articular</label>
-        <label><input type="checkbox" id="m-op"> Operación</label>
-        <label><input type="checkbox" id="m-emb"> Embarazo</label>
-      </div>
-      <div class="fg" style="margin-top:8px"><label>Detalle</label><textarea id="m-det" rows="2"></textarea></div>
-      <div class="fr c2"><div class="fg"><label>Medicación</label><input id="m-med"></div><div class="fg"><label>Alergias</label><input id="m-aler"></div></div>
-      <div class="ct" style="margin-top:12px;margin-bottom:8px">Contacto de emergencia</div>
-      <div class="fr c3"><div class="fg"><label>Nombre</label><input id="m-en"></div><div class="fg"><label>Teléfono</label><input id="m-et"></div><div class="fg"><label>Relación</label><input id="m-er"></div></div>
-    </div>
-    </div>
-    <div class="mft"><button class="btn bp" id="btn-save-al">Guardar alumno</button></div>
-  </div>
 </div>
 <div class="page" id="page-imprimir">
       <p style="color:var(--t2);margin-bottom:16px;font-size:13px">Generá documentos y usá Ctrl+P para imprimir.</p>
@@ -1303,6 +1206,10 @@ function goPage(pg){
   document.querySelectorAll('.ni').forEach(function(b){b.classList.remove('on');});
   var pel=document.getElementById('page-'+pg);if(pel)pel.classList.add('on');
   var nel=document.querySelector('.ni[data-page="'+pg+'"]');if(nel)nel.classList.add('on');
+  var titles={dashboard:'Dashboard',alumnos:'Alumnos',rutinas:'Rutinas',
+    asistencia:'Asistencia',pagos:'Cuotas & Pagos','cuotas-lista':'Listado de cuotas',
+    imprimir:'Imprimir',config:'Configuración'};
+  var tEl=document.getElementById('tb-title');if(tEl)tEl.textContent=titles[pg]||pg;
   closeSidebar();
 }
 
