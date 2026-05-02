@@ -2277,33 +2277,16 @@ function savePago(){
   closeModal('mo-pg');toast('Pago registrado ✓');_lsSave();renderAll();
 }
 
-function prFill(){
-  var id=document.getElementById('pr-al').value;
-  document.getElementById('pu-rut').innerHTML='';
-  var rutinas=window._rutinas||LOCAL_RUTINAS;
-  var a=(window._alumnos||LOCAL_ALUMNOS).find(function(x){return x.id===id;});
-  var opts=rutinas.map(function(r){return'<option value="'+r.id+'"'+(a&&a.rutina_id==r.id?' selected':'')+'>'+r.nombre+'</option>';}).join('');
-  document.getElementById('pu-rut').innerHTML=opts;
-}
+function prFill(){}
 
 function fillPrint(){
   var alumnos=window._alumnos||LOCAL_ALUMNOS;
-  var rutinas=window._rutinas||LOCAL_RUTINAS;
-  // Recibo - alumno select
-  var sel=document.getElementById('pr-al');
-  if(sel)sel.innerHTML=alumnos.map(function(a){return'<option value="'+a.id+'">'+a.nombre+'</option>';}).join('');
-  prFill();
-  // Rutina - rutina + alumno selects
-  var rutSel=document.getElementById('pu-rut');
-  if(rutSel)rutSel.innerHTML='<option value="">— Sin seleccionar —</option>'+rutinas.map(function(r){return'<option value="'+r.id+'">'+r.nombre+'</option>';}).join('');
-  var alSel=document.getElementById('pu-al');
-  if(alSel)alSel.innerHTML='<option value="">— Sin alumno —</option>'+alumnos.map(function(a){return'<option value="'+a.id+'">'+a.nombre+'</option>';}).join('');
   // Ficha - alumno select
   var pgSel=document.getElementById('pa-al');
-  if(pgSel)pgSel.innerHTML=alumnos.map(function(a){return'<option value="'+a.id+'">'+a.nombre+'</option>';}).join('');
+  if(pgSel)pgSel.innerHTML='<option value="">— Seleccioná —</option>'+alumnos.map(function(a){return'<option value="'+a.id+'">'+a.nombre+'</option>';}).join('');
   // Planilla - mes
   var pMes=document.getElementById('pp-mes');
-  if(pMes)pMes.value=mes();
+  if(pMes&&!pMes.value)pMes.value=mes();
 }
 
 function enviarReciboWA(id){
