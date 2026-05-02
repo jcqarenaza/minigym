@@ -143,9 +143,7 @@ textarea{resize:vertical;min-height:60px}
 .modal>.tabs{padding:12px 22px 0;flex-shrink:0}
 .mft{display:flex;gap:7px;justify-content:flex-end;padding:12px 22px 20px;border-top:1px solid var(--bor);flex-shrink:0}
 @keyframes pop{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.mhd{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
 .mtitle{font-size:15px;font-weight:800}
-.mft{display:flex;gap:7px;justify-content:flex-end;margin-top:14px;padding-top:12px;border-top:1px solid var(--bor)}
 .xb{width:26px;height:26px;border-radius:6px;border:none;background:var(--s2);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--mu)}
 .xb:hover{background:var(--bor)}
 
@@ -755,24 +753,24 @@ textarea{resize:vertical;min-height:60px}
     </div>
     <div class="mo-scroll">
     <!-- TAB DATOS -->
-    <div id="td" style="display:block">
+    <div id="td" data-panel style="display:block">
       <div class="fr c2"><div class="fg"><label>Nombre *</label><input id="a-nom"></div><div class="fg"><label>DNI</label><input id="a-dni"></div></div>
       <div class="fr c2"><div class="fg"><label>Teléfono</label><input id="a-tel"></div><div class="fg"><label>Email</label><input id="a-email" type="email"></div></div>
       <div class="fr c3"><div class="fg"><label>Nacimiento</label><input type="date" id="a-nac"></div><div class="fg"><label>Sexo</label><select id="a-sex"><option value="">—</option><option>Masculino</option><option>Femenino</option><option>Otro</option></select></div><div class="fg"><label>Ocupación</label><input id="a-ocu"></div></div>
       <div class="fr c3"><div class="fg"><label>Ingreso</label><input type="date" id="a-ing"></div><div class="fg"><label>Cuota aplicada</label><div id="a-cuo-display" style="padding:7px 10px;background:var(--s2);border:1.5px solid var(--bor);border-radius:7px;font-weight:700;color:var(--gd);font-size:13px">— seleccioná días/sem</div><input type="hidden" id="a-cuo" value="0"></div><div class="fg"><label>Rutina</label><select id="a-rut"></select></div></div>
-      <div class="fr c2">
+      <div class="fr c3">
         <div class="fg"><label>Días por semana</label>
           <select id="a-dias-sem" onchange="actualizarCuotaDisplay()">
             <option value="">— sin asignar</option>
-            <option value="2">2 veces por semana</option>
-            <option value="3">3 veces por semana</option>
-            <option value="4">4 veces por semana</option>
-            <option value="5">Pase libre (Lun a Vie)</option>
+            <option value="2">2 veces/sem</option>
+            <option value="3">3 veces/sem</option>
+            <option value="4">4 veces/sem</option>
+            <option value="5">Pase libre</option>
           </select>
         </div>
-        <div class="fg"><label>Tipo de entrenamiento</label>
+        <div class="fg"><label>Tipo</label>
           <select id="a-tipo">
-            <option value="">— sin asignar</option>
+            <option value="">—</option>
             <option value="Musculación">Musculación</option>
             <option value="Funcional">Funcional</option>
             <option value="Cardio">Cardio</option>
@@ -781,17 +779,21 @@ textarea{resize:vertical;min-height:60px}
           </select>
         </div>
         <div class="fg"><label>Objetivo</label><select id="a-obj"><option value="">—</option><option>Ganar masa muscular</option><option>Perder peso</option><option>Mantenimiento</option><option>Mejorar condicion fisica</option><option>Rendimiento deportivo</option><option>Rehabilitacion</option></select></div>
-        </div>
-        
       </div>
       <div class="fg"><label>Observaciones</label><textarea id="a-obs" rows="2"></textarea></div>
     </div>
     <!-- TAB FISICO -->
-    <div id="tf" style="display:none">
+    <div id="tf" data-panel style="display:none">
       <div class="fr c3">
-        <div class="fg"><label>Peso (kg)</label><input type="number" id="f-peso" step="0.1"></div>
-        <div class="fg"><label>Altura (cm)</label><input type="number" id="f-alt"></div>
-        <div class="fg"><label>IMC</label><span id="imc-v" style="font-weight:800;color:var(--gd)">—</span> <span id="imc-c" style="font-size:11px"></span></div>
+        <div class="fg"><label>Peso (kg)</label><input type="number" id="f-peso" step="0.1" oninput="calcIMC()"></div>
+        <div class="fg"><label>Altura (cm)</label><input type="number" id="f-alt" oninput="calcIMC()"></div>
+        <div class="fg" style="display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:4px">
+          <label>IMC</label>
+          <div style="padding:7px 10px;background:var(--s2);border:1.5px solid var(--bor);border-radius:7px;font-size:13px">
+            <span id="imc-v" style="font-weight:800;color:var(--gd)">—</span>
+            <span id="imc-c" style="font-size:11px;color:var(--mu)"></span>
+          </div>
+        </div>
       </div>
       <div class="fr c3">
         <div class="fg"><label>% Grasa</label><input type="number" id="f-gra" step="0.1"></div>
@@ -812,34 +814,34 @@ textarea{resize:vertical;min-height:60px}
         <div class="fg"><label>Nivel de actividad</label><select id="f-niv"><option value="">—</option><option>Sedentario</option><option>Ligeramente activo</option><option>Moderadamente activo</option><option>Muy activo</option></select></div>
         <div class="fg"><label>Deportes / Actividades</label><input id="f-dep"></div>
       </div>
-      <div class="ct" style="margin-top:12px;margin-bottom:8px">Evaluación postural</div>
-      <div class="chk-grid">
-        <label><input type="checkbox" id="p-lor"> Hiperlordosis</label>
-        <label><input type="checkbox" id="p-cif"> Hipercifosis</label>
-        <label><input type="checkbox" id="p-esc"> Escoliosis</label>
-        <label><input type="checkbox" id="p-gv"> Genu valgo</label>
-        <label><input type="checkbox" id="p-gvr"> Genu varo</label>
-        <label><input type="checkbox" id="p-pp"> Pie plano</label>
-        <label><input type="checkbox" id="p-hom"> Alt. hombros</label>
-        <label><input type="checkbox" id="p-pel"> Anteversión pélvica</label>
+      <div style="font-size:11px;font-weight:700;color:var(--gd);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 8px;padding-bottom:4px;border-bottom:2px solid var(--gl)">Evaluación postural</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
+        <label class="chk"><input type="checkbox" id="p-lor"> Hiperlordosis</label>
+        <label class="chk"><input type="checkbox" id="p-cif"> Hipercifosis</label>
+        <label class="chk"><input type="checkbox" id="p-esc"> Escoliosis</label>
+        <label class="chk"><input type="checkbox" id="p-gv"> Genu valgo</label>
+        <label class="chk"><input type="checkbox" id="p-gvr"> Genu varo</label>
+        <label class="chk"><input type="checkbox" id="p-pp"> Pie plano</label>
+        <label class="chk"><input type="checkbox" id="p-hom"> Alt. hombros</label>
+        <label class="chk"><input type="checkbox" id="p-pel"> Anteversión pélvica</label>
       </div>
     </div>
     <!-- TAB MEDICO -->
-    <div id="tm" style="display:none">
-      <div class="ct" style="margin-bottom:8px">Antecedentes médicos</div>
-      <div class="chk-grid">
-        <label><input type="checkbox" id="m-cv"> Cardiovascular</label>
-        <label><input type="checkbox" id="m-hip"> Hipertensión</label>
-        <label><input type="checkbox" id="m-dia"> Diabetes</label>
-        <label><input type="checkbox" id="m-res"> Respiratorio</label>
-        <label><input type="checkbox" id="m-col"> Columna</label>
-        <label><input type="checkbox" id="m-art"> Articular</label>
-        <label><input type="checkbox" id="m-op"> Operación</label>
-        <label><input type="checkbox" id="m-emb"> Embarazo</label>
+    <div id="tm" data-panel style="display:none">
+      <div style="font-size:11px;font-weight:700;color:var(--gd);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid var(--gl)">Antecedentes médicos</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:12px">
+        <label class="chk"><input type="checkbox" id="m-cv"> Cardiovascular</label>
+        <label class="chk"><input type="checkbox" id="m-hip"> Hipertensión</label>
+        <label class="chk"><input type="checkbox" id="m-dia"> Diabetes</label>
+        <label class="chk"><input type="checkbox" id="m-res"> Respiratorio</label>
+        <label class="chk"><input type="checkbox" id="m-col"> Columna</label>
+        <label class="chk"><input type="checkbox" id="m-art"> Articular</label>
+        <label class="chk"><input type="checkbox" id="m-op"> Operación</label>
+        <label class="chk"><input type="checkbox" id="m-emb"> Embarazo</label>
       </div>
-      <div class="fg" style="margin-top:8px"><label>Detalle</label><textarea id="m-det" rows="2"></textarea></div>
-      <div class="fr c2"><div class="fg"><label>Medicación</label><input id="m-med"></div><div class="fg"><label>Alergias</label><input id="m-aler"></div></div>
-      <div class="ct" style="margin-top:12px;margin-bottom:8px">Contacto de emergencia</div>
+      <div class="fg"><label>Detalle / Observaciones médicas</label><textarea id="m-det" rows="2"></textarea></div>
+      <div class="fr c2"><div class="fg"><label>Medicación habitual</label><input id="m-med"></div><div class="fg"><label>Alergias</label><input id="m-aler"></div></div>
+      <div style="font-size:11px;font-weight:700;color:var(--gd);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 8px;padding-bottom:4px;border-bottom:2px solid var(--gl)">Contacto de emergencia</div>
       <div class="fr c3"><div class="fg"><label>Nombre</label><input id="m-en"></div><div class="fg"><label>Teléfono</label><input id="m-et"></div><div class="fg"><label>Relación</label><input id="m-er"></div></div>
     </div>
     </div>
@@ -921,21 +923,6 @@ textarea{resize:vertical;min-height:60px}
       <div class="stat-box"><div class="sv" id="pt-cuota">—</div><div class="sl">Cuota mensual</div></div>
       <div class="stat-box"><div class="sv" id="pt-vence">—</div><div class="sl">Vence en</div></div>
       <div class="stat-box"><div class="sv" id="pt-desde">—</div><div class="sl">Meses en el gym</div></div>
-    </div>
-    <div class="pcard">
-      <div class="pcard-hd"><span>⚖️</span><span>Mis medidas</span></div>
-      <div class="pcard-body">
-        <p style="font-size:12px;color:var(--mu);margin-bottom:10px">Registrá tu peso y medidas. Tu profe también puede actualizarlas.</p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-          <div class="fg"><label>Peso (kg)</label><input type="number" id="pt-peso" placeholder="Ej: 75" step="0.1" oninput="_actualizarIMCPortal()"></div>
-          <div class="fg"><label>Altura (cm)</label><input type="number" id="pt-altura" placeholder="Ej: 175" oninput="_actualizarIMCPortal()"></div>
-          <div class="fg"><label>% Grasa corporal</label><input type="number" id="pt-grasa" placeholder="Ej: 18" step="0.1"></div>
-          <div class="fg"><label>Cintura (cm)</label><input type="number" id="pt-cintura" placeholder="Ej: 85"></div>
-        </div>
-        <div id="pt-imc-display" style="background:var(--s2);border:1px solid var(--bor);border-radius:7px;padding:8px 12px;font-size:13px;margin-bottom:10px;display:none"></div>
-        <button class="btn bp" id="btn-guardar-medidas" style="width:100%;justify-content:center">Guardar medidas</button>
-        <div id="pt-historial-peso" style="margin-top:12px"></div>
-      </div>
     </div>
     <div class="pcard">
       <div class="pcard-hd"><span>💪</span><span id="pt-rut-title">Mi rutina</span></div>
@@ -1257,13 +1244,15 @@ function loadAll(){
   var hasCache=window._alumnos.length||window._rutinas.length;
   if(hasCache){ _pullSheetSilent(); } else { _pullSheet(); }
 }
+var _initDone=false;
 function init(){
   var fechaStr=new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
   var tbDate=document.getElementById('tb-date');
   if(tbDate)tbDate.textContent=fechaStr;
   var tbDateAs=document.getElementById('tb-date-as');
   if(tbDateAs)tbDateAs.textContent=fechaStr;
-  bindEvents();loadAll();_applyGymIdentity();
+  if(!_initDone){bindEvents();_initDone=true;}
+  loadAll();_applyGymIdentity();
   goPage('dashboard');
 }
 function bindEvents(){
@@ -1285,8 +1274,9 @@ function bindEvents(){
       group.querySelectorAll('.tab').forEach(function(x){x.classList.remove('on');});
       this.classList.add('on');
       var tid=this.dataset.tab;
-      var container=this.closest('.mo-scroll,.modal');
-      if(container)container.querySelectorAll('[data-panel]').forEach(function(p){p.style.display='none';});
+      // Hide all panels in the same modal
+      var modal=this.closest('.modal');
+      if(modal)modal.querySelectorAll('[data-panel]').forEach(function(p){p.style.display='none';});
       var panel=document.getElementById(tid);if(panel)panel.style.display='block';
     });
   });
@@ -1378,28 +1368,39 @@ function openPortal(al){
   } else {
     rutTitle.textContent=r.nombre;
     var prog=r.programa||[];
+    // Load saved weights for this alumno from localStorage
+    var savedWeights=JSON.parse(localStorage.getItem('pesos_'+al.id)||'{}');
     var daysHtml=prog.map(function(day,di){
       var ejs=(day.ejercicios||[]).filter(function(e){return e.nombre;});
       if(!ejs.length)return'';
-      return'<div style="margin-bottom:14px">'
-        +'<div style="font-size:11px;font-weight:800;color:var(--gd);letter-spacing:.5px;margin-bottom:5px;padding:4px 8px;background:var(--gl);border-radius:5px">DÍA '+(di+1)+' — '+day.dia.toUpperCase()+'</div>'
-        +'<div style="overflow-x:auto">'
-        +'<table style="width:100%;border-collapse:collapse;font-size:12px">'
-        +'<thead><tr style="color:var(--mu);font-size:10px;border-bottom:1px solid var(--bd)">'
-        +'<th style="text-align:left;padding:3px 6px">Ejercicio</th><th style="width:48px;padding:3px 4px;text-align:center">Series</th><th style="width:48px;padding:3px 4px;text-align:center">Reps</th><th style="width:50px;padding:3px 4px;text-align:center">Peso</th>'
-        +'</tr></thead><tbody>'
+      return'<div style="margin-bottom:16px">'
+        +'<div style="font-size:11px;font-weight:800;color:var(--gd);letter-spacing:.5px;margin-bottom:6px;padding:4px 8px;background:var(--gl);border-radius:5px">DÍA '+(di+1)+' — '+day.dia.toUpperCase()+'</div>'
         +ejs.map(function(e,ei){
-          return'<tr style="border-bottom:1px solid var(--bd)'+(ei%2===0?'':';background:var(--gl)')+'">'
-            +'<td style="padding:4px 6px">'+e.nombre+'</td>'
-            +'<td style="padding:4px;text-align:center;font-weight:700;color:var(--bl)">'+(e.series||'—')+'</td>'
-            +'<td style="padding:4px;text-align:center">'+(e.reps||'—')+'</td>'
-            +'<td style="padding:4px;text-align:center;color:var(--mu);font-size:11px">'+(e.peso||'')+'</td>'
-            +'</tr>';
+          var key=al.id+'_'+e.nombre.replace(/\s/g,'_');
+          var hist=savedWeights[key]||[];
+          var last=hist.length?hist[hist.length-1]:{};
+          var histHtml=hist.slice(-3).reverse().map(function(h){
+            return'<span style="font-size:10px;color:var(--mu);background:var(--s2);border-radius:4px;padding:1px 5px">'+fmt(h.f)+': '+h.p+'kg</span>';
+          }).join(' ');
+          return'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bor);gap:8px">'
+            +'<div style="flex:1;min-width:0">'
+            +'<div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.nombre+'</div>'
+            +'<div style="font-size:10px;color:var(--mu);margin-top:2px">'
+            +(e.series?'<b>'+e.series+'</b> series · ':'')
+            +(e.reps?'<b>'+e.reps+'</b> reps':'')
+            +(histHtml?' · '+histHtml:'')
+            +'</div></div>'
+            +'<div style="display:flex;align-items:center;gap:5px;flex-shrink:0">'
+            +'<input type="number" step="0.5" placeholder="kg" value="'+(last.p||'')+'" '
+            +'style="width:64px;padding:5px 7px;border:1.5px solid var(--bor);border-radius:6px;font-size:13px;font-weight:700;text-align:center;font-family:inherit" '
+            +'data-ejkey="'+key+'" class="pt-peso-ej">'
+            +'<button onclick="guardarPesoEj(this)" data-ejkey="'+key+'" class="btn bb bsm" style="flex-shrink:0">✓</button>'
+            +'</div>'
+            +'</div>';
         }).join('')
-        +'</tbody></table></div></div>';
+        +'</div>';
     }).join('');
     if(!daysHtml && r.ejercicios){
-      // legacy format fallback
       var ejs=r.ejercicios.split('\n').filter(Boolean);
       daysHtml='<ul style="padding-left:14px;margin:0">'+ejs.map(function(e){
         var p=e.split('-').map(function(s){return s.trim();});
@@ -1407,7 +1408,7 @@ function openPortal(al){
           +'<span>'+p[0]+'</span>'+(p[1]?' <b style="color:var(--gd)">'+p[1]+'</b>':'')+'</li>';
       }).join('')+'</ul>';
     }
-    var infoBar='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">'
+    var infoBar='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">'
       +(r.nivel?'<span class="rtag">'+r.nivel+'</span>':'')
       +(r.dias?'<span class="rtag">'+r.dias+'</span>':'')
       +(r.duracion?'<span class="rtag">'+r.duracion+'</span>':'')
@@ -1424,78 +1425,25 @@ function openPortal(al){
   // Nota previa
   var notas=JSON.parse(localStorage.getItem('notas_'+al.id)||'[]');
   document.getElementById('pt-notas-previas').innerHTML=notas.slice(-3).reverse().map(function(n){return'<div style="font-size:11px;background:var(--gl);border-radius:6px;padding:6px 9px;margin-bottom:5px"><span style="color:var(--mu)">'+fmt(n.fecha)+'</span><br>'+n.texto+'</div>';}).join('');
-  // Medidas corporales
-  _cargarMedidas(al);
-  var btnMed=document.getElementById('btn-guardar-medidas');
-  if(btnMed){btnMed.onclick=function(){guardarMedidas();};}
   // Check notificaciones
   _checkNotifPortal(al);
   document.getElementById('portal').classList.add('show');
 }
 
-function _cargarMedidas(al){
-  var f=al.fisico||{};
-  var el=function(id){return document.getElementById(id);};
-  if(el('pt-peso'))el('pt-peso').value=f.peso||'';
-  if(el('pt-altura'))el('pt-altura').value=f.altura||'';
-  if(el('pt-grasa'))el('pt-grasa').value=f.grasa||'';
-  if(el('pt-cintura'))el('pt-cintura').value=f.cintura||'';
-  _actualizarIMCPortal();
-  // Historial de peso desde localStorage
-  var hist=JSON.parse(localStorage.getItem('peso_'+al.id)||'[]');
-  var histEl=document.getElementById('pt-historial-peso');
-  if(histEl&&hist.length){
-    histEl.innerHTML='<div style="font-size:11px;color:var(--mu);margin-bottom:5px;font-weight:700">Últimos registros</div>'
-      +hist.slice(-5).reverse().map(function(h){
-        return'<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--bor);font-size:12px">'
-          +'<span style="color:var(--mu)">'+fmt(h.fecha)+'</span>'
-          +'<span style="font-weight:700;color:var(--gd)">'+h.peso+' kg</span>'
-          +(h.grasa?'<span style="color:var(--mu)">'+h.grasa+'% grasa</span>':'<span></span>')
-          +'</div>';
-      }).join('');
-  }
-}
-
-function _actualizarIMCPortal(){
-  var p=+( document.getElementById('pt-peso')||{}).value;
-  var h=+( document.getElementById('pt-altura')||{}).value;
-  var el=document.getElementById('pt-imc-display');
-  if(!el)return;
-  if(!p||!h){el.style.display='none';return;}
-  var imc=p/Math.pow(h/100,2);
-  var cat,col;
-  if(imc<18.5){cat='Bajo peso';col='var(--bl)';}
-  else if(imc<25){cat='Normal ✓';col='var(--ok)';}
-  else if(imc<30){cat='Sobrepeso';col='var(--am)';}
-  else{cat='Obesidad';col='var(--red)';}
-  el.style.display='block';
-  el.innerHTML='IMC: <b style="color:'+col+'">'+imc.toFixed(1)+'</b> — '+cat;
-}
-
-function guardarMedidas(){
+function guardarPesoEj(btn){
   var al=window._portalAl;if(!al)return;
-  var g=function(id){return document.getElementById(id);};
-  var peso=+g('pt-peso').value||null;
-  var altura=+g('pt-altura').value||null;
-  var grasa=+g('pt-grasa').value||null;
-  var cintura=+g('pt-cintura').value||null;
-  if(!peso){toast('Ingresá al menos el peso');return;}
-  // Guardar historial local
-  var hist=JSON.parse(localStorage.getItem('peso_'+al.id)||'[]');
-  hist.push({fecha:new Date().toISOString().split('T')[0],peso:peso,grasa:grasa});
-  localStorage.setItem('peso_'+al.id,JSON.stringify(hist.slice(-50)));
-  // Actualizar el objeto del alumno y sincronizar
-  if(!al.fisico)al.fisico={};
-  al.fisico.peso=peso;
-  if(altura)al.fisico.altura=altura;
-  if(grasa)al.fisico.grasa=grasa;
-  if(cintura)al.fisico.cintura=cintura;
-  var idx=(window._alumnos||[]).findIndex(function(x){return x.id===al.id;});
-  if(idx>=0)window._alumnos[idx]=al;
-  markDirty('alumno',al.id);
-  _actualizarIMCPortal();
-  _cargarMedidas(al);
-  toast('Medidas guardadas ✓');
+  var key=btn.dataset.ejkey;
+  var inp=btn.parentNode.querySelector('.pt-peso-ej');
+  var val=parseFloat(inp.value);
+  if(!val||val<=0){toast('Ingresá un peso válido');return;}
+  var saved=JSON.parse(localStorage.getItem('pesos_'+al.id)||'{}');
+  if(!saved[key])saved[key]=[];
+  saved[key].push({f:new Date().toISOString().split('T')[0],p:val});
+  saved[key]=saved[key].slice(-20); // keep last 20
+  localStorage.setItem('pesos_'+al.id,JSON.stringify(saved));
+  btn.textContent='✓';btn.style.background='var(--ol)';btn.style.color='var(--ok)';
+  setTimeout(function(){btn.textContent='✓';},1500);
+  toast('Peso guardado: '+val+' kg');
 }
 
 function guardarNota(){
