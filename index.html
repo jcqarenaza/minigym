@@ -536,7 +536,6 @@ textarea{resize:vertical;min-height:60px}
       <button class="ni" data-page="imprimir">🖨️ Imprimir</button>
       <div class="sec">Sistema</div>
       <button class="ni" data-page="config">⚙️ Configuración</button>
-      <button class="ni" id="btn-manual">📖 Manual</button>
     </nav>
     <div style="padding:12px 14px;border-top:1px solid var(--bor);display:flex;align-items:center;justify-content:space-between">
       <span style="font-size:10px" id="sync-status"></span>
@@ -1361,7 +1360,6 @@ function bindEvents(){
     r.readAsDataURL(f);
   });
   // Manual
-  on('btn-manual','click',function(){openModal('mo-manual');});
   // POV close on backdrop
   on('pov','click',function(e){if(e.target===this)closeModal('pov');});
   // Modals close on backdrop
