@@ -1263,7 +1263,7 @@ function goPage(pg){
 // ── RENDER ALL ────────────────────────────────────────────────
 function renderAll(){
   renderDash();renderAlumnos();renderRutinas();renderPagos();
-  renderAsistencia();renderCuotasLista();fillPrint();updateBadge();
+  renderAsistencia();renderCuotasLista();fillPrint();renderConfig();updateBadge();
 }
 function updateBadge(){
   var v=(window._alumnos||[]).filter(function(a){return estadoAl(a).dias<0;}).length;
@@ -2404,9 +2404,21 @@ function renderConfig(){
   var tb=document.getElementById('cfg-nums-list');
   if(tb){
     var alumnos=window._alumnos||LOCAL_ALUMNOS;
-    tb.innerHTML=alumnos.map(function(a){
-      return'<tr><td style="font-family:monospace;font-weight:700;color:var(--gd)">'+a.num+'</td><td>'+a.nombre+'</td><td style="color:var(--mu)">'+rutNombre(a.rutina_id)+'</td></tr>';
-    }).join('');
+    if(!alumnos.length){
+      tb.innerHTML='<p style="font-size:12px;color:var(--mu)">Sin alumnos cargados.</p>';
+    } else {
+      tb.innerHTML='<table style="width:100%;border-collapse:collapse;font-size:13px">'
+        +'<thead><tr style="text-align:left;font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:.5px">'
+        +'<th style="padding:4px 8px;width:48px">N°</th><th style="padding:4px 8px">Alumno</th><th style="padding:4px 8px">Rutina</th></tr></thead><tbody>'
+        +alumnos.map(function(a){
+          return'<tr style="border-top:1px solid var(--bor)">'
+            +'<td style="padding:7px 8px;font-family:monospace;font-weight:700;color:var(--gd)">'+a.num+'</td>'
+            +'<td style="padding:7px 8px;font-weight:600">'+a.nombre+'</td>'
+            +'<td style="padding:7px 8px;color:var(--mu)">'+rutNombre(a.rutina_id)+'</td>'
+            +'</tr>';
+        }).join('')
+        +'</tbody></table>';
+    }
   }
 }
 
