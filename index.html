@@ -235,15 +235,7 @@ textarea{resize:vertical;min-height:60px}
   .ptb{display:none!important}
 }
 
-/* LOADER OVERLAY */
-#loader-overlay{position:fixed;inset:0;background:rgba(255,255,255,.75);z-index:400;display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
-.spinner{width:36px;height:36px;border:3px solid var(--gl);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
 
-/* LOADER OVERLAY */
-#loader-overlay{position:fixed;inset:0;background:rgba(255,255,255,.75);z-index:400;display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
-.spinner{width:36px;height:36px;border:3px solid var(--gl);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
 
 /* PORTAL ALUMNO */
 #portal{display:none;height:100vh;overflow-y:auto;background:var(--bg)}
@@ -275,15 +267,9 @@ textarea{resize:vertical;min-height:60px}
 .portal-logout:hover{background:rgba(255,255,255,.1);color:#fff}
 .estbadge{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
 
-/* LOADER OVERLAY */
-#loader-overlay{position:fixed;inset:0;background:rgba(255,255,255,.75);z-index:400;display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
-.spinner{width:36px;height:36px;border:3px solid var(--gl);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
 
-/* LOADER OVERLAY */
-#loader-overlay{position:fixed;inset:0;background:rgba(255,255,255,.75);z-index:400;display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
-.spinner{width:36px;height:36px;border:3px solid var(--gl);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
+
+
 
 
 /* PORTAL ALUMNO */
@@ -311,21 +297,12 @@ textarea{resize:vertical;min-height:60px}
 .pg-row:last-child{border-bottom:none}
 .portal-logout{background:none;border:none;color:rgba(255,255,255,.5);font-size:11px;cursor:pointer;font-family:inherit;padding:4px 8px;border-radius:5px}
 .portal-logout:hover{background:rgba(255,255,255,.1);color:#fff}
-/* LOADER */
-#loader-overlay{position:fixed;inset:0;background:rgba(255,255,255,.75);z-index:400;display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
-.spinner{width:36px;height:36px;border:3px solid var(--gl);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
 
 
-/* LOADER OVERLAY */
-#loader-overlay{position:fixed;inset:0;background:rgba(255,255,255,.75);z-index:400;display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
-.spinner{width:36px;height:36px;border:3px solid var(--gl);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
 
-/* LOADER OVERLAY */
-#loader-overlay{position:fixed;inset:0;background:rgba(255,255,255,.75);z-index:400;display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
-.spinner{width:36px;height:36px;border:3px solid var(--gl);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
+
+
+
 
 /* PAGES */
 .content{flex:1;overflow-y:auto;padding:18px 20px;display:flex;flex-direction:column}
@@ -1263,6 +1240,12 @@ function _pullSheetSilent(){
       var ids=new Set((window._rutinas||[]).map(function(x){return x.id;}));
       d.forEach(function(sr){if(!ids.has(sr.id))return;var li=(window._rutinas||[]).findIndex(function(x){return x.id===sr.id;});if(li>=0)window._rutinas[li]=sr;});
     }).catch(function(){}),
+    api('getAllPagos').then(function(r){
+      var d=r.data||r||[];if(d.length)window._pagos=d;
+    }).catch(function(){}),
+    api('getAsistencias').then(function(r){
+      var d=r.data||r||[];if(d.length)window._asistencias=d;
+    }).catch(function(){}),
     api('getConfig').then(function(r){
       var d=r.data||r||{};
       if(d&&d.gym_nombre){Object.keys(d).forEach(function(k){LOCAL_CONFIG[k]=d[k];});_applyGymIdentity();}
@@ -1778,26 +1761,37 @@ function _acBindAll(){
   });
 }
 
-function rdrBuildDays(){
+function rdrBuildDays(preloadDays){
   var n=+document.getElementById('r-ndias').value||3;
+  if(preloadDays&&preloadDays.length) n=preloadDays.length;
   var DAYS=['Lunes','Martes','Miércoles','Jueves','Viernes'];
-  var container=document.getElementById('rdr-container');
+  var container=document.getElementById('rdr-days');
   if(!container)return;
-  // preserve existing data
+  // preserve existing data (unless we have preload data)
   var existing={};
-  container.querySelectorAll('.rdr-day-block').forEach(function(bl,i){
-    var rows=[];
-    bl.querySelectorAll('tbody tr').forEach(function(tr){
-      rows.push({
-        ej:tr.querySelector('.rdr-ej')?tr.querySelector('.rdr-ej').value:'',
-        series:tr.querySelector('.rdr-series')?tr.querySelector('.rdr-series').value:'',
-        reps:tr.querySelector('.rdr-reps')?tr.querySelector('.rdr-reps').value:'',
-        peso:tr.querySelector('.rdr-peso')?tr.querySelector('.rdr-peso').value:'',
-        obs:tr.querySelector('.rdr-obs')?tr.querySelector('.rdr-obs').value:''
+  if(!preloadDays){
+    container.querySelectorAll('.rdr-day-block').forEach(function(bl,i){
+      var rows=[];
+      bl.querySelectorAll('tbody tr').forEach(function(tr){
+        rows.push({
+          ej:tr.querySelector('.rdr-ej')?tr.querySelector('.rdr-ej').value:'',
+          series:tr.querySelector('.rdr-series')?tr.querySelector('.rdr-series').value:'',
+          reps:tr.querySelector('.rdr-reps')?tr.querySelector('.rdr-reps').value:'',
+          peso:tr.querySelector('.rdr-peso')?tr.querySelector('.rdr-peso').value:'',
+          obs:tr.querySelector('.rdr-obs')?tr.querySelector('.rdr-obs').value:''
+        });
       });
+      existing[i]=rows;
     });
-    existing[i]=rows;
-  });
+  } else {
+    // Convert preload format {dia, ejercicios:[{nombre,...}]} → existing format
+    preloadDays.forEach(function(day,i){
+      existing[i]=(day.ejercicios||[]).map(function(e){
+        return {ej:e.nombre||'',series:e.series||'',reps:e.reps||'',peso:e.peso||'',obs:e.obs||''};
+      });
+      if(!existing[i].length) existing[i]=[{ej:'',series:'',reps:'',peso:'',obs:''}];
+    });
+  }
   container.innerHTML='';
   for(var d=0;d<n;d++){
     var rows=existing[d]||[{ej:'',series:'',reps:'',peso:'',obs:''}];
@@ -1807,7 +1801,8 @@ function rdrBuildDays(){
     var hd=document.createElement('div');
     hd.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--bor)';
     var dayInput=document.createElement('input');
-    dayInput.value=DAYS[d]||('Día '+(d+1));
+    dayInput.className='rdr-dayname';
+    dayInput.value=(preloadDays&&preloadDays[d]&&preloadDays[d].dia)||DAYS[d]||('Día '+(d+1));
     dayInput.style.cssText='border:none;background:none;font-weight:700;font-size:13px;color:var(--navy);font-family:inherit;width:160px;padding:2px 4px';
     var addBtn=document.createElement('button');
     addBtn.className='btn bsm';addBtn.type='button';addBtn.textContent='+ Ejercicio';
@@ -1892,18 +1887,21 @@ function rdrAddRow(btn){
 
 function rdrGetDays(){
   var days=[];
-  document.getElementById('rdr-days').querySelectorAll('.rdr-day').forEach(function(d){
-    var name=d.querySelector('.rdr-dayname').value.trim();
+  document.getElementById('rdr-days').querySelectorAll('.rdr-day-block').forEach(function(block){
+    var nameInput=block.querySelector('.rdr-dayname');
+    var name=nameInput?nameInput.value.trim():'';
     var ejercicios=[];
-    d.querySelectorAll('.rdr-row').forEach(function(row){
-      var ej=row.querySelector('.rdr-ej').value.trim();
+    block.querySelectorAll('tbody tr').forEach(function(row){
+      var ejInp=row.querySelector('.rdr-ej');
+      if(!ejInp)return;
+      var ej=ejInp.value.trim();
       if(!ej)return;
       ejercicios.push({
         nombre:ej,
-        series:row.querySelector('.rdr-series').value.trim(),
-        reps:row.querySelector('.rdr-reps').value.trim(),
-        peso:row.querySelector('.rdr-peso').value.trim(),
-        obs:row.querySelector('.rdr-obs').value.trim()
+        series:(row.querySelector('.rdr-series')||{}).value||'',
+        reps:(row.querySelector('.rdr-reps')||{}).value||'',
+        peso:(row.querySelector('.rdr-peso')||{}).value||'',
+        obs:(row.querySelector('.rdr-obs')||{}).value||''
       });
     });
     days.push({dia:name, ejercicios:ejercicios});
@@ -1915,36 +1913,8 @@ function rdrLoadDays(rutina){
   var ndias=document.getElementById('r-ndias');
   var days=rutina.programa||[];
   if(days.length) ndias.value=days.length;
-  rdrBuildDays();
-  if(!days.length)return;
-  document.getElementById('rdr-days').querySelectorAll('.rdr-day').forEach(function(d,di){
-    var dayData=days[di]||{};
-    var dn=d.querySelector('.rdr-dayname');
-    if(dn&&dayData.dia)dn.value=dayData.dia;
-    var tbody=d.querySelector('tbody');
-    var ejs=dayData.ejercicios||[];
-    // Fill existing rows first, add more if needed
-    var rows=tbody.querySelectorAll('tr');
-    ejs.forEach(function(e,ei){
-      var row;
-      if(ei<rows.length){row=rows[ei];}
-      else{
-        row=document.createElement('tr');row.className='rdr-row';
-        row.innerHTML='<td style="padding:2px"><input class="rdr-ej" style="width:100%;min-width:150px"></td>'
-          +'<td style="padding:2px"><input class="rdr-series" type="number" style="width:50px;text-align:center"></td>'
-          +'<td style="padding:2px"><input class="rdr-reps" style="width:60px;text-align:center"></td>'
-          +'<td style="padding:2px"><input class="rdr-peso" style="width:55px;text-align:center"></td>'
-          +'<td style="padding:2px"><input class="rdr-obs" style="width:90px"></td>'
-          +'<td style="padding:2px;text-align:center"><button type="button" onclick="this.closest(\'tr\').remove()" style="background:none;border:none;color:var(--rd);cursor:pointer;font-size:14px">×</button></td>';
-        tbody.appendChild(row);
-      }
-      row.querySelector('.rdr-ej').value=e.nombre||'';
-      row.querySelector('.rdr-series').value=e.series||'';
-      row.querySelector('.rdr-reps').value=e.reps||'';
-      row.querySelector('.rdr-peso').value=e.peso||'';
-      row.querySelector('.rdr-obs').value=e.obs||'';
-    });
-  });
+  // Pasamos los datos a rdrBuildDays para que los pre-cargue directamente
+  rdrBuildDays(days);
   _acBindAll();
 }
 
@@ -2045,8 +2015,22 @@ function saveRutina(){
 
 function delRutina(id){
   confirmModal('¿Eliminar esta rutina? Esta acción no se puede deshacer.', function(){
+    var backup=JSON.parse(JSON.stringify(window._rutinas||[]));
     window._rutinas=(window._rutinas||[]).filter(function(x){return x.id!==id;});
-    toast('Rutina eliminada');_lsSave();renderRutinas();markDirty('rutina',id);
+    toast('Rutina eliminada');_lsSave();renderRutinas();
+    api('deleteRutina',{id:id})
+      .then(function(r){
+        _online=true;_updateSyncStatus();
+        if(r&&r.ok===false){
+          window._rutinas=backup;_lsSave();renderRutinas();
+          toast('⚠️ Error al eliminar: '+(r.error||''));
+        }
+      })
+      .catch(function(){
+        window._rutinas=backup;_lsSave();renderRutinas();
+        _online=false;_updateSyncStatus();
+        toast('⚠️ Sin conexión — rutina restaurada');
+      });
   }, 'Eliminar rutina');
 }
 
